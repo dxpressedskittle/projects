@@ -1,0 +1,52 @@
+.html, .body {
+    display: flex; 
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.calculator {
+    height: 65vh;
+    width: 20%;
+    border: 1px solid black;
+    border-radius: 5px;
+    align-self: center;
+    margin: auto;
+    margin-top: 25vh;
+}
+
+.header {
+    border-bottom: 1px solid black;
+    height: 25%;
+    margin-bottom: 25px;
+}
+
+.display {
+    height: 80%;
+    width: 90%;
+    margin: auto;
+    margin-top: 15px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+
+.buttonContainer {
+     border: 1px solid black;     
+}
+
+
+button {
+    height: 50px;
+    width: 50px;
+    margin:3px
+    
+
+}
