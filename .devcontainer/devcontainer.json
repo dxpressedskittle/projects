@@ -1,0 +1,24 @@
+{
+  "name": "Node.js Web Dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "formulahendry.live-server"
+      ]
+    }
+  },
+  "postCreateCommand": "npm install",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Web Preview",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}
