@@ -1,48 +1,44 @@
 <!DOCTYPE html>
-<!-- dxpressedskittle portfolio index page -->
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
   <title>My Projects</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Made by dxpressedskittle</h1>
-  </header>
-
   <main>
-    <section class="cards">
+    <h1>My Projects</h1>
+    <section class="projects-list">
+      <!-- Example project card, add more as you complete more files -->
+        <article class="project-card completed">
+        <h2><a href="calculator/calc.html">Calculator</a></h2>
+        <span class="status">Finished</span>
+        <p>A simple calculator to apply operations on 2 numbers.</p>
 
-      <div class="card">
-        <h2><a href="bj/bj" target="_blank" rel="noopener noreferrer">Blackjack Game</a></h2>
-        <p>A JavaScript Blackjack game: try to beat the dealer without going bust!</p>
-        <div class="status in-progress">🕒 In Progress</div>
-      </div>
+      </article>
+      <article class="project-card in-progress">
+        <h2><a href="bj/bj.html">BlackJack</a></h2>
+        <span class="status">In progress</span>
+        <p>Blackjack, the fun classic card game.</p>
+      </article>
 
-      <div class="card">
-        <h2><a href="calculator/calc" target="_blank" rel="noopener noreferrer">Calculator</a></h2>
-        <p>A basic web calculator (add, subtract, multiply, divide).</p>
-        <div class="status done">✅ Done</div>
-      </div>
+      <article class="project-card not-started">
+        <h2><a href="Search Api/search.html">Search Api</a></h2>
+        <span class="status">Not started</span>
+        <p>A search algorithm that sorts a randomized array</p>
+      </article>
+      <article class="project-card not-started">
+        <h2>Tic Tac Toe</h2>
+        <span class="status">Not started</span>
+        <p>The game Tic Tac Toe</p>
+      </article>
 
-      <div class="card">
-        <h2><a href="ttt/ttt" target="_blank" rel="noopener noreferrer">TicTacToe Game</a></h2>
-        <p>Classic Tic-Tac-Toe game for two players.</p>
-        <div class="status not-started">❌ Not Started</div>
-        
-      </div>
-
-      <div class="card">
-        <h2><a href="Search Api/search" target="_blank" rel="noopener noreferrer">Search algorithm</a></h2>
-        <p>Searches from a array of randomized items.</p>
-        <div class="status not-started">❌ Not Started</div>
-        
-      </div>
+      
     </section>
   </main>
 
-  <script src="script.js"></script>
+
+  <footer>
+    <p>Created by <a href="https://github.com/dxpressedskittle" target="_blank">Dxpressedskittle</a></p>
 </body>
-</html>
+</html></article>
