@@ -37,8 +37,6 @@ header h1 {
 .cards {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
 }
 
 /* Individual card style */
