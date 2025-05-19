@@ -30,38 +30,42 @@ header h1 {
 }
 
 /*───────────────── Card ─────────────────*/
+@keyframes rainbowGlow {
+  0% {
+    box-shadow:
+      0 0 15px hsl(0, 100%, 50%),
+      0 0 30px hsl(0, 100%, 50%);
+    background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet, red);
+  }
+  100% {
+    box-shadow:
+      0 0 15px hsl(360, 100%, 50%),
+      0 0 30px hsl(360, 100%, 50%);
+    background: linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet, red);
+  }
+}
+
 .card {
-  background: #1e1e1e;
+  background: linear-gradient(45deg, #1e1e1e, #2a2a2a);
   border-radius: 0.75rem;
   padding: 1.25rem;
   width: 300px;
   min-height: 180px;
   position: relative;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s, box-shadow 0.3s, background 1s;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .card:hover {
-  transform: translateY(-0.25rem);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
-  background: linear-gradient(45deg, #00e676, #64b5f6);
+  transform: translateY(-5px);
+  animation: rainbowGlow 5s linear infinite;
 }
 
-/* neon outline */
-.card::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  bottom: -2px;
-  left: -2px;
-  border-radius: 0.75rem;
-  background: transparent;
-  z-index: -1;
-  transition: background 0.3s;
+.card > * {
+  position: relative;
+  z-index: 1;
 }
-
-
 
 /*───────────────── Typography ─────────────────*/
 .card h2 {
