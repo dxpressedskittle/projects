@@ -1,39 +1,120 @@
-body {
-  font-family: sans-serif;
+/* Global styles and dark theme */
+:root {
+  --background-color: #121212;
+  --card-color: #1e1e1e;
+  --accent-color: #00e676; /* neon green accent */
+  --accent-color-alt: #64b5f6; /* neon blue accent */
+  --text-color: #e0e0e0;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  background: #f4f4f4;
-  color: #333;
 }
 
-header {
-  background: #222;
-  color: #fff;
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  line-height: 1.6;
+  text-align: center;
   padding: 20px;
-  text-align: center;
 }
 
-nav a {
-  margin: 0 10px;
-  color: #0ff;
+/* Header */
+header {
+  margin-bottom: 40px;
+}
+header h1 {
+  font-size: 2.5em;
+  color: var(--accent-color);
+  text-shadow: 0 0 10px var(--accent-color);
+}
+
+/* Container for project cards */
+.cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Individual card style */
+.card {
+  background-color: var(--card-color);
+  border-radius: 12px;
+  padding: 20px;
+  width: 300px;
+  min-height: 180px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+}
+
+/* Neon border on hover */
+.card::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; bottom: -2px; right: -2px;
+  border-radius: 14px;
+  background: transparent;
+  z-index: -1;
+  transition: background 0.3s ease;
+}
+.card:hover::before {
+  background: linear-gradient(45deg, var(--accent-color), var(--accent-color-alt));
+}
+
+/* Card Title */
+.card h2 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+.card h2 a {
+  color: var(--text-color);
   text-decoration: none;
+  transition: color 0.3s ease;
+}
+.card h2 a:hover {
+  color: var(--accent-color-alt);
 }
 
-nav a:hover {
-  text-decoration: underline;
+/* Project description */
+.card p {
+  font-size: 1em;
+  margin-bottom: 20px;
+  color: #cfcfcf;
 }
 
-main {
-  padding: 40px;
-  text-align: center;
+/* Status badge */
+.status {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+.status.done {
+  color: #00e676; /* green */
+}
+.status.in-progress {
+  color: #ffca28; /* amber */
+}
+.status.not-started {
+  color: #f44336; /* red */
 }
 
-footer {
-  background: #222;
-  color: #aaa;
-  text-align: center;
-  padding: 10px;
-  position: fixed;
-  width: 100%;
-  bottom: 0;
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .cards {
+    flex-direction: column;
+    align-items: center;
+  }
+  .card {
+    width: 90%;
+  }
 }

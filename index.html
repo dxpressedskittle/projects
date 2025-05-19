@@ -1,30 +1,41 @@
 <!DOCTYPE html>
+<!-- dxpressedskittle portfolio index page -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Cool Website</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Projects</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>Welcome to My Website</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-    </nav>
+    <h1>Made by dxpressedskittle</h1>
   </header>
 
   <main>
-    <section class="intro">
-      <h2>Hello!</h2>
-      <p>This is a simple website running in GitHub Codespaces using Node.js and http-server.</p>
+    <section class="cards">
+
+      <div class="card">
+        <h2><a href="bj/bj" target="_blank" rel="noopener noreferrer">Blackjack Game</a></h2>
+        <p>A JavaScript Blackjack game: try to beat the dealer without going bust!</p>
+        <div class="status in-progress">🕒 In Progress</div>
+      </div>
+
+      <div class="card">
+        <h2><a href="calculator/calc" target="_blank" rel="noopener noreferrer">Calculator</a></h2>
+        <p>A basic web calculator (add, subtract, multiply, divide).</p>
+        <div class="status done">✅ Done</div>
+      </div>
+
+      <div class="card">
+        <h2><a href="ttt/ttt" target="_blank" rel="noopener noreferrer">TicTacToe Game</a></h2>
+        <p>Classic Tic-Tac-Toe game for two players.</p>
+        <div class="status not-started">❌ Not Started</div>
+        
+      </div>
     </section>
   </main>
 
-  <footer>
-    <p>&copy; 2025 My Website</p>
-  </footer>
+  <script src="script.js"></script>
 </body>
 </html>
