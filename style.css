@@ -50,6 +50,10 @@ main {
   overflow: hidden;
 }
 
+.project-card:hover {
+  cursor: pointer;
+}
+
 .project-card h2 {
   font-size: 1.4rem;
   margin-bottom: 0.5rem;
