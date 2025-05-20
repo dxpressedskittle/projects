@@ -11,7 +11,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-for (let i = 1; i < 51; i++) {
+for (let i = 0; i < 50; i++) {
     numbers.push(i)
 }
 
@@ -53,10 +53,7 @@ function search(array, word) {
             console.log("Yes")
         }
 
-        if (contains) {
-            sortedArray.push(searchString)
-            
-        }
+
 
 
 
