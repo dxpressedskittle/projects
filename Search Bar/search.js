@@ -49,7 +49,9 @@ function search(array, word) {
     array.forEach(element => {
         mainString = element
         searchString = word;
-        let contains = mainString.includes(searchString)
+        if (mainString.includes(searchString)) {
+            console.log("Yes")
+        }
 
         if (contains) {
             sortedArray.push(searchString)
