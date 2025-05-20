@@ -1,7 +1,9 @@
-const input = document.getElementById("input").innerHTML
+const input = document.getElementById("input")
 let numbers = []
 let letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 let wordArray = []
+
+
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -31,6 +33,14 @@ for (let i = 0; i < 100; i++) {
     createWord();
 }
 
+input.addEventListener('change', function(){
+    inputValue = document.getElementById("input").value
+    console.log(wordArray.indexOf(inputValue, 0))
+})
 
+
+function search() {
+    
+}
 
 
