@@ -1,0 +1,8 @@
+@font-face {
+    font-family: videoGameFont;
+    src: url(/Fonts/pongFont.ttf)
+}
+
+h1 {
+    font-family: videoGameFont;
+}
