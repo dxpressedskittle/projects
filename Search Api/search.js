@@ -34,12 +34,33 @@ for (let i = 0; i < 100; i++) {
 }
 
 input.addEventListener('change', function(){
-    inputValue = document.getElementById("input").value
-    console.log(wordArray.indexOf(inputValue, 0))
+    inputValue = document.getElementById("input")
+    search(wordArray, inputValue)
+    
 })
 
 
-function search() {
+function search(array, word) {
+    let mainString = ""
+    let searchString = ""
+    let contains = ""
+    let sortedArray = []
+
+    array.forEach(element => {
+        mainString = element
+        searchString = word;
+        let contains = mainString.includes(searchString)
+
+        if (contains) {
+            sortedArray.push(searchString)
+            
+        }
+
+
+
+        
+    });
+    console.log(sortedArray)
     
 }
 
