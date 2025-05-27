@@ -328,6 +328,7 @@ shuffleButton.addEventListener('click', function() { //shuffle addEventListener
 function startGame() {
     resetGame();
     resultDisplayReset();
+    resultDisplay.innerText = "Welcome to Blackjack! Place your bet or play for free to try it out!"
     updateScores();
     count.innerText = position;
  
