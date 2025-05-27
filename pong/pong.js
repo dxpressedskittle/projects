@@ -37,7 +37,7 @@ const box = document.getElementById("gameDisplay")
             ball.style.top = y + "px";
             ball.style.visibility = "hidden";
             
-             /* function getRandomDirection() {
+            function getRandomDirection() {
             if (getRandomInt(0, 3) == 0) {
                 xSpeed = -xSpeed; 
              } else if (getRandomInt(0, 3) == 1) {
@@ -47,14 +47,8 @@ const box = document.getElementById("gameDisplay")
              } else if (getRandomInt(0, 3) == 3) {
                 xSpeed = xSpeed;
              }}
-                */
-               function getRandomDirection() {
-            const angle = Math.random() * 2 * Math.PI;
-            return {
-            x: Math.cos(angle),
-            y: Math.sin(angle),
-            };
-             }
+                
+              
             
                 
 
