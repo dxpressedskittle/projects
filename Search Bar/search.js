@@ -52,11 +52,7 @@ function search(array, word) {
         }
   
     });
-    sortedArray.forEach(element => {
-    const paragraphElement = document.createElement('p');
-    paragraphElement.innerText = element;
-    resultDisplay.appendChild(paragraphElement);
-    });
+    console.log(sortedArray)
 }
 let inputValue = ""
 
@@ -66,10 +62,7 @@ input.addEventListener('input', function(){
     
 })
 
-sortedArray.forEach(element => {
-    resultDisplay.innerHTML += element;
-    
-});
+
 
 
 })
