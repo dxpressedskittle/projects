@@ -30,13 +30,6 @@ const ball = document.getElementById("ball");
 const box = document.getElementById("gameDisplay")
 
             // starting Ball position and physics
-            pong = {
-               x: 400,
-               y: 300,
-               xSpeed: getRandomInt(3,5),
-               ySpeed: 0
-               
-            }
             let x = 400;
             let y = 300;
             let xSpeed = getRandomInt(3,5)
@@ -50,7 +43,7 @@ const box = document.getElementById("gameDisplay")
              paddleOne = {
                x: 10,
                y: 270,
-               ySpeed: 0
+               ySpeed: 0,
 
              }
              paddle1.style.left = paddleOne.x + "px";
@@ -72,11 +65,11 @@ const box = document.getElementById("gameDisplay")
             
             function getRandomDirection() {
             let direction = getRandomInt(0,1)
-            pong.xSpeed = getRandomInt(3,5)
+            xSpeed = getRandomInt(3,5)
             if (direction = 0) {
-               pong.xSpeed = pong.xSpeed
+               xSpeed = xSpeed
             } else {
-               pong.xSpeed = -pong.xSpeed
+               xSpeed = -xSpeed
             }}
                 
               
@@ -84,29 +77,24 @@ const box = document.getElementById("gameDisplay")
                 
 
             function animate() {
-            pong.x += pong.xSpeed;
-            pong.y += pong.ySpeed;
-            if (pong.x + 50 > 800 || pong.x < 0) {
-               pong.x = -pong.xSpeed;
+            x += xSpeed;
+            y += ySpeed;
+            if (x + 50 > 800 || x < 0) {
+               resetBall();
             }
-            if (pong.y + 50 > 650 || pong.y < 0) {
-               pong.ySpeed = -pong.ySpeed;
+            if (y + 50 > 650 || y < 0) {
+               ySpeed = -ySpeed;
             }
-            ball.style.left = pong.x + "px";
-            ball.style.top = pong.y + "px";
+            ball.style.left = x + "px";
+            ball.style.top = y + "px";
             requestAnimationFrame(animate);
          }
 
 
          function resetBall() {
             getRandomDirection();
-            pong = {
-               x: 400,
-               y: 300,
-               xSpeed: getRandomInt(3,5),
-               ySpeed: 0
-
-            }
+            x = 370;
+            y = 300;
 
          }
 
