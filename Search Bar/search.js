@@ -1,3 +1,5 @@
+document.addEventListener('DOMContentLoaded', function(){
+const resultDisplay = document.getElementById("result")
 const input = document.getElementById("input")
 let numbers = []
 let letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
@@ -29,15 +31,11 @@ function createWord() {
 }
 
 
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 1000000; i++) {
     createWord();
 }
 
-input.addEventListener('change', function(){
-    inputValue = document.getElementById("input")
-    search(wordArray, inputValue)
-    
-})
+
 
 
 function search(array, word) {
@@ -50,17 +48,28 @@ function search(array, word) {
         mainString = element
         searchString = word;
         if (mainString.includes(searchString)) {
-            console.log("Yes")
+            sortedArray.push(mainString)
         }
-
-
-
-
-
-        
+  
     });
-    console.log(sortedArray)
-    
+    sortedArray.forEach(element => {
+    const paragraphElement = document.createElement('p');
+    paragraphElement.innerText = element;
+    resultDisplay.appendChild(paragraphElement);
+    });
 }
+let inputValue = ""
+
+input.addEventListener('input', function(){
+     inputValue = document.getElementById("input").value
+    search(wordArray, inputValue)
+    
+})
+
+sortedArray.forEach(element => {
+    resultDisplay.innerHTML += element;
+    
+});
 
 
+})
