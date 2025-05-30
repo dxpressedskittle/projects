@@ -58,6 +58,23 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function getRandomDirectionWithSpeed(minSpeed, maxSpeed) {
+  // generates a random angle in radians / 0-2 * PI 
+  const angle = Math.random() * 2 * Math.PI;
+
+  // Generate random speed within the specified range
+  const speed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
+
+  // Calculate x and y components of the direction vector
+  const dx = Math.cos(angle) * speed;
+  const dy = Math.sin(angle) * speed;
+  console.log(dx, dy, speed)
+  return { dx, dy, speed };
+  
+}
+
+getRandomDirectionWithSpeed(1, 7)
+
 
 
 const ball = document.getElementById("ball");
@@ -68,7 +85,7 @@ const box = document.getElementById("box");
 let x = 400;
 let y = 300;
 let xSpeed = getRandomInt(5,7)
-let ySpeed = getRandomInt(5,7);
+let ySpeed = getRandomInt(0,7);
 ball.style.left = x + "px";
 ball.style.top = y + "px";
 ball.style.visibility = "hidden";
@@ -104,18 +121,23 @@ controller = {
 
             
             function getRandomDirection() {
-            let direction = getRandomInt(0,1)
-            xSpeed = getRandomInt(3,5)
-            if (direction == 0) {
-               xSpeed = xSpeed
-            } else {
-               xSpeed = -xSpeed
-            }}
+                let direction = getRandomInt(0,1)
+                if (direction == 0) {
+                    xSpeed = getRandomInt(5,7)
+                    ySpeed = getRandomInt(0,7);
+                } else {
+                    xSpeed = getRandomInt(5,7)
+                    ySpeed = getRandomInt(0,7);
+                    xSpeed = -xSpeed
+                    ySpeed = -ySpeed
+                }
+             
+            }
                 
               
             
                 
-
+            let hitCount = 0;
             function moveBall() {
           x += xSpeed;
          y += ySpeed;
@@ -126,7 +148,7 @@ controller = {
     }
 
 
-   let hitCount = 2;
+
 
     // Paddle collision
     // Left paddle
@@ -137,13 +159,14 @@ controller = {
         x > paddleOne.x
     ) {
         xSpeed = Math.abs(xSpeed);
-        hitCount = hitCount+1
-        if (hitCount % 3 == 0) {
-         ball.xSpeed = ball.xSpeed * 1.2
-         ball.ySpeed = ball.ySpeed * 1.2
-         console.log("yes")
-        }
+        hitCount++
         console.log(hitCount)
+        if (hitCount % 3 == 0) {
+            ball.xSpeed = ball.xSpeed * 1.1
+            ball.ySpeed = ball.ySpeed * 1.1
+            console.log(parseInt(ball.xSpeed))
+            console.log(parseInt(ball.ySpeed))
+        }
     }
     // Right paddle
     if (
@@ -153,13 +176,15 @@ controller = {
         x < paddleTwo.x + 20
     ) {
         xSpeed = -Math.abs(xSpeed);
-        hitCount++
-        if (hitCount % 3 == 0) {
-         ball.xSpeed = ball.xSpeed * 1.2
-         ball.ySpeed = ball.ySpeed * 1.2
-         console.log(ball.ySpeed, ball.xSpeed)
-        }
+               hitCount++
         console.log(hitCount)
+        if (hitCount % 3 == 0) {
+            ball.xSpeed = ball.xSpeed * 1.1
+            ball.ySpeed = ball.ySpeed * 1.1
+            console.log(parseInt(ball.xSpeed))
+            console.log(parseInt(ball.ySpeed))
+        }
+
     }
 
     // Score
@@ -188,14 +213,14 @@ controller = {
             if (player == 1) {
             if (direction == "w" && paddleOne.y > 0) {
             paddleOne.y += paddleOne.ySpeed;
-            } else if (direction == "s" && paddleOne.y < 500) {
+            } else if (direction == "s" && paddleOne.y < 540) {
             paddleOne.y -= paddleOne.ySpeed;
             }
             paddle1.style.top = paddleOne.y + "px";
             } else if (player == 2) {
             if (direction == "ArrowUp" && paddleTwo.y > 0) {
             paddleTwo.y += paddleTwo.ySpeed;
-            } else if (direction == "ArrowDown" && paddleTwo.y < 500) {
+            } else if (direction == "ArrowDown" && paddleTwo.y < 540) {
             paddleTwo.y -= paddleTwo.ySpeed;
             }
             paddle2.style.top = paddleTwo.y + "px";
@@ -209,4 +234,5 @@ controller = {
     y = 300;
     ball.style.left = x + "px";
     ball.style.top = y + "px";
+    hitCount = 0
 }})
