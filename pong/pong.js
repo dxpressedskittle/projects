@@ -24,6 +24,7 @@ document.addEventListener('keydown', function(e){
     if(controller && controller[e.keyCode]) {
       controller[e.keyCode].pressed = true
     }
+    move()
 })
 
 document.addEventListener('keyup', function(e){
@@ -38,7 +39,7 @@ function move() {
          controller[key].func()
       }
    })
-   requestAnimationFrame(move);
+   
 }
 
 
@@ -66,8 +67,8 @@ const box = document.getElementById("box");
 // starting Ball position and physics
 let x = 400;
 let y = 300;
-let xSpeed = getRandomInt(3,5)
-let ySpeed = 0;
+let xSpeed = getRandomInt(5,7)
+let ySpeed = getRandomInt(5,7);
 ball.style.left = x + "px";
 ball.style.top = y + "px";
 ball.style.visibility = "hidden";
@@ -116,53 +117,96 @@ controller = {
                 
 
             function moveBall() {
-            x += xSpeed;
-            y += ySpeed;
-            if (x + 50 > 800 || x < 0) {
-               resetBall();
-            }
-            if (y + 50 > 650 || y < 0) {
-               ySpeed = -ySpeed;
-            }
-            ball.style.left = x + "px";
-            ball.style.top = y + "px";
-            requestAnimationFrame(moveBall);
-         }
+          x += xSpeed;
+         y += ySpeed;
+
+    // Top and bottom collision
+    if (y <= 0 || y + 50 >= 650) {
+        ySpeed = -ySpeed;
+    }
+
+
+   let hitCount = 2;
+
+    // Paddle collision
+    // Left paddle
+    if (
+        x <= paddleOne.x + 20 &&
+        y + 50 >= paddleOne.y &&
+        y <= paddleOne.y + 100 &&
+        x > paddleOne.x
+    ) {
+        xSpeed = Math.abs(xSpeed);
+        hitCount = hitCount+1
+        if (hitCount % 3 == 0) {
+         ball.xSpeed = ball.xSpeed * 1.2
+         ball.ySpeed = ball.ySpeed * 1.2
+         console.log("yes")
+        }
+        console.log(hitCount)
+    }
+    // Right paddle
+    if (
+        x + 50 >= paddleTwo.x &&
+        y + 50 >= paddleTwo.y &&
+        y <= paddleTwo.y + 100 &&
+        x < paddleTwo.x + 20
+    ) {
+        xSpeed = -Math.abs(xSpeed);
+        hitCount++
+        if (hitCount % 3 == 0) {
+         ball.xSpeed = ball.xSpeed * 1.2
+         ball.ySpeed = ball.ySpeed * 1.2
+         console.log(ball.ySpeed, ball.xSpeed)
+        }
+        console.log(hitCount)
+    }
+
+    // Score
+    if (x < 0) {
+        // Player 2 scores
+        let score = parseInt(p2Score.textContent) + 1;
+        p2Score.textContent = score;
+        resetBall();
+        return;
+    }
+    if (x + 50 > 800) {
+        // Player 1 scores
+        let score = parseInt(pScore.textContent) + 1;
+        pScore.textContent = score;
+        resetBall();
+        return;
+    }
+
+    ball.style.left = x + "px";
+    ball.style.top = y + "px";
+    requestAnimationFrame(moveBall);
+}
 
          
-
             function movePaddle(player, direction) {
-               if (player == 1) {
-                  if (direction == "w") {
-                     paddleOne.y += paddleOne.ySpeed
-                  } else if (direction == "s") {
-                     paddleOne.y -= paddleOne.ySpeed
-                  }
-               } else if (player == 2) {
-                  if (direction == "ArrowUp") {
-                     paddleTwo.y += paddleTwo.ySpeed
-                     console.log(paddleTwo.ySpeed)
-                  } else if (direction == "ArrowDown") {
-                     paddleTwo.y -= paddleTwo.ySpeed
-                  }
-
-               }
-               paddle1.style.top = paddleOne.y + "px";
-               paddle2.style.top = paddleTwo.y + "px"
-               requestAnimationFrame(movePaddle)
-
+            if (player == 1) {
+            if (direction == "w" && paddleOne.y > 0) {
+            paddleOne.y += paddleOne.ySpeed;
+            } else if (direction == "s" && paddleOne.y < 500) {
+            paddleOne.y -= paddleOne.ySpeed;
             }
+            paddle1.style.top = paddleOne.y + "px";
+            } else if (player == 2) {
+            if (direction == "ArrowUp" && paddleTwo.y > 0) {
+            paddleTwo.y += paddleTwo.ySpeed;
+            } else if (direction == "ArrowDown" && paddleTwo.y < 500) {
+            paddleTwo.y -= paddleTwo.ySpeed;
+            }
+            paddle2.style.top = paddleTwo.y + "px";
+   }
+}
 
 
          function resetBall() {
-            getRandomDirection();
-            x = 370;
-            y = 300;
-
-         }
-
-    })
-
-
-
-
+    getRandomDirection();
+    x = 400;
+    y = 300;
+    ball.style.left = x + "px";
+    ball.style.top = y + "px";
+}})
