@@ -1,5 +1,4 @@
-// Global functions 
-
+// Global functions
 
 export function getRandomInt(min, max) {
   min = Math.ceil(min);

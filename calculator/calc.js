@@ -1,9 +1,7 @@
 /* calculator buttons */
 
-
-
 const btn1 = document.getElementById("1");
-const btn2 = document.getElementById("2"); 
+const btn2 = document.getElementById("2");
 const btn3 = document.getElementById("3");
 const btn4 = document.getElementById("4");
 const btn5 = document.getElementById("5");
@@ -25,106 +23,101 @@ let opType = "";
 let a = "";
 let b = "";
 let table = {
-    ["+"]: function(a, b) { return a + b; }, 
-    ["-"]: function(a, b) { return a - b; },
-    ["*"]: function(a, b) { return a * b; },
-    ["/"]: function(a, b) { 
-        if (b === 0) {
-            return display.innerHTML = "Error! Division by zero.";
-        }
-        return a / b; 
+  ["+"]: function (a, b) {
+    return a + b;
+  },
+  ["-"]: function (a, b) {
+    return a - b;
+  },
+  ["*"]: function (a, b) {
+    return a * b;
+  },
+  ["/"]: function (a, b) {
+    if (b === 0) {
+      return (display.innerHTML = "Error! Division by zero.");
     }
+    return a / b;
+  },
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-[btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9].forEach(btn => {
-    btn.addEventListener("click", function() {
-        if (display.innerHTML === "0" || display.innerHTML === "Error! Invalid operation." || display.innerHTML === "Error! Invalid numbers.") {
-            display.innerHTML = btn.id; 
-        } else {
-            display.innerHTML += btn.id; 
-        }
-    });
+[btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9].forEach((btn) => {
+  btn.addEventListener("click", function () {
+    if (
+      display.innerHTML === "0" ||
+      display.innerHTML === "Error! Invalid operation." ||
+      display.innerHTML === "Error! Invalid numbers."
+    ) {
+      display.innerHTML = btn.id;
+    } else {
+      display.innerHTML += btn.id;
+    }
+  });
 });
 
 /* start operation button event listeners */
-btnPlus.addEventListener("click", function() {
-    if (!opType && display.innerHTML !== "0") {
-        opType = "+";
-        display.innerHTML += "+";
-        if (a !== "" && b !== "") {
-            const result = table[opType](a, b);
-            display.innerHTML = result += "+";
+btnPlus.addEventListener("click", function () {
+  if (!opType && display.innerHTML !== "0") {
+    opType = "+";
+    display.innerHTML += "+";
+    if (a !== "" && b !== "") {
+      const result = table[opType](a, b);
+      display.innerHTML = result += "+";
+    }
+  }
+});
+btnMinus.addEventListener("click", function () {
+  if (!opType && display.innerHTML !== "0") {
+    opType = "-";
+    display.innerHTML += "-";
+  }
+});
+btnMultiply.addEventListener("click", function () {
+  if (!opType && display.innerHTML !== "0") {
+    opType = "*";
+    display.innerHTML += "*";
+  }
+});
+btnDivide.addEventListener("click", function () {
+  if (!opType && display.innerHTML !== "0") {
+    opType = "/";
+    display.innerHTML += "/";
+  }
+});
 
-    }
-}});
-btnMinus.addEventListener("click", function() {
-    if (!opType && display.innerHTML !== "0") {
-        opType = "-";
-        display.innerHTML += "-"; 
-    }
-});
-btnMultiply.addEventListener("click", function() {
-    if (!opType && display.innerHTML !== "0") {
-        opType = "*";
-        display.innerHTML += "*"; 
-    }
-});
-btnDivide.addEventListener("click", function() {
-    if (!opType && display.innerHTML !== "0") {
-        opType = "/";
-        display.innerHTML += "/"; 
-    }
-});
-
-btnDot.addEventListener("click", function() {
-    if (!display.innerHTML.includes(".")) {
-        display.innerHTML += "."; 
-    }
+btnDot.addEventListener("click", function () {
+  if (!display.innerHTML.includes(".")) {
+    display.innerHTML += ".";
+  }
 });
 
 /* end operation button event listeners */
 
-equals.addEventListener("click", function() {
-    const displayContent = display.innerHTML;
-    const operatorIndex = displayContent.indexOf(opType);
+equals.addEventListener("click", function () {
+  const displayContent = display.innerHTML;
+  const operatorIndex = displayContent.indexOf(opType);
 
-    if (operatorIndex === -1 || !opType) {
-        display.innerHTML = "Error! Invalid operation.";
-        return;
-    }
+  if (operatorIndex === -1 || !opType) {
+    display.innerHTML = "Error! Invalid operation.";
+    return;
+  }
 
-    const a = parseFloat(displayContent.slice(0, operatorIndex));
-    const b = parseFloat(displayContent.slice(operatorIndex + 1));
+  const a = parseFloat(displayContent.slice(0, operatorIndex));
+  const b = parseFloat(displayContent.slice(operatorIndex + 1));
 
-    if (isNaN(a) || isNaN(b)) {
-        display.innerHTML = "Error! Invalid numbers.";
-        return;
-    }
+  if (isNaN(a) || isNaN(b)) {
+    display.innerHTML = "Error! Invalid numbers.";
+    return;
+  }
 
-    const result = table[opType](a, b);
+  const result = table[opType](a, b);
 
-    display.innerHTML = result;
-    opType = ""; 
+  display.innerHTML = result;
+  opType = "";
 });
 
-clear.addEventListener("click", function() {
-    display.innerHTML = "0"; 
-    opType = "";
+clear.addEventListener("click", function () {
+  display.innerHTML = "0";
+  opType = "";
 });
-
-
 
 /* Bugs */

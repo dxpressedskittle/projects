@@ -1,46 +1,59 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blackjack</title>
-    <link rel="stylesheet" href="bj.css">
-    <link rel="icon" href="/imgs/card.png">
-</head>
-<body>
+    <link rel="stylesheet" href="bj.css" />
+    <link rel="icon" href="/imgs/card.png" />
+  </head>
+  <body>
     <div class="moneyDiv">
-        <h3 id="moneyDisplay">Money: $1000</h3>
+      <h3 id="moneyDisplay">Money: $1000</h3>
     </div>
     <div class="dealerDiv">
-        <h3 id="dealerValue">0</h3>
-        <br>
-        <h3>Dealer Cards: <h3 id="dealerCards"></h3></h3>
+      <h3 id="dealerValue">0</h3>
+      <br />
+      <h3>
+        Dealer Cards:
+        <h3 id="dealerCards"></h3>
+      </h3>
     </div>
     <div class="resultDiv">
-        <h3 id="resultDisplay">Result: </h3>
+      <h3 id="resultDisplay">Result:</h3>
     </div>
     <div class="cardCountDisplay">
-        <h3 id="cardCountDisplay">Cards Dealt:</h3> <h3 id="count">0</h3>
+      <h3 id="cardCountDisplay">Cards Dealt:</h3>
+      <h3 id="count">0</h3>
     </div>
     <div class="playerDiv">
-        <h3 id="playerValue">0</h3>
-        <br>
-        <h3>Player Cards: <h3  id="playerCards"></h3></h3>
-        <br>
-        <button id="hitButton" class="functionButtons">Hit</button>
-        <button id="standButton" class="functionButtons">Stand</button>
-        <button id="resetButton" class="functionButtons">Reset</button>
-        <button id="shuffleButton" class="functionButtons">Shuffle</button>
-        <form id="betForm">
-            <label for="betAmount">Bet Amount:</label>
-            <input type="number" id="betAmount" name="betAmount" min="1" max="1000" value="10">
-            <button id="betButton" type="button">Bet</button>
-            <br>
-            <label for="keepBet">Keep Bet:</label>
-            <input type = checkbox id = "keepBet" name = "keepBet" unchecked>
-        </form>
+      <h3 id="playerValue">0</h3>
+      <br />
+      <h3>
+        Player Cards:
+        <h3 id="playerCards"></h3>
+      </h3>
+      <br />
+      <button id="hitButton" class="functionButtons">Hit</button>
+      <button id="standButton" class="functionButtons">Stand</button>
+      <button id="resetButton" class="functionButtons">Reset</button>
+      <button id="shuffleButton" class="functionButtons">Shuffle</button>
+      <form id="betForm">
+        <label for="betAmount">Bet Amount:</label>
+        <input
+          type="number"
+          id="betAmount"
+          name="betAmount"
+          min="1"
+          max="1000"
+          value="10"
+        />
+        <button id="betButton" type="button">Bet</button>
+        <br />
+        <label for="keepBet">Keep Bet:</label>
+        <input type="checkbox" id="keepBet" name="keepBet" unchecked />
+      </form>
     </div>
     <script src="bj.js"></script>
-</body>
+  </body>
 </html>

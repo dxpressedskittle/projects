@@ -1,46 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="pong.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="pong.css" />
     <title>Pong</title>
-</head>
-<body>
+  </head>
+  <body>
     <div id="box" class="gameDisplay">
-        <div class="score-bar">
-            <h1 id="pScore">0</h1>
-            <div class="neon-divider"></div>
-            <h1 id="p2Score">0</h1>
-        </div>
-        <h1 id="display">Welcome to pong, press h to start playing.</h1>
-        <div class="gameParts">
+      <div class="score-bar">
+        <h1 id="pScore">0</h1>
+        <div class="neon-divider"></div>
+        <h1 id="p2Score">0</h1>
+      </div>
+      <h1 id="display">Welcome to pong, press h to start playing.</h1>
+      <div class="gameParts">
         <style>
-        .paddle {
-         width: 20px;
-         height: 100px;
-         background-color: blue;
-        position: absolute;
-        }
-      #ball {
-         width: 50px;
-         height: 50px;
-         background-color: red;
-         border-radius: 25px;
-         position: absolute;
-        }
+          .paddle {
+            width: 20px;
+            height: 100px;
+            background-color: blue;
+            position: absolute;
+          }
+          #ball {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 25px;
+            position: absolute;
+          }
         </style>
-            <div class="paddle" id="paddle1"></div>
-            <div id="ball" ></div>
-            <div class="paddle" id="paddle2"></div>
-        </div>
+        <div class="paddle" id="paddle1"></div>
+        <div id="ball"></div>
+        <div class="paddle" id="paddle2"></div>
+      </div>
     </div>
-    
-    
-
-
-
 
     <script src="/pong/pong.js"></script>
-</body>
+  </body>
 </html>
