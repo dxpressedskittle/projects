@@ -1,6 +1,9 @@
 const cells = document.querySelectorAll(".cell");
 const resetButton = document.getElementById("restartBtn");
 const swapBtn = document.getElementById("swapBtn");
+const playerText = document.getElementById("playerText");
+const p1Score = document.getElementById("p1Score");
+const p2Score = document.getElementById("p2Score");
 let computerCellChoice = 0;
 let statusText = document.getElementById("statusText");
 let winningArrays = {
@@ -13,30 +16,34 @@ let winningArrays = {
   6: [0, 4, 8],
   7: [2, 4, 6],
 };
-let playerChoice = "X";
-let computerChoice = "O";
-let playerScore = 0;
-let computerScore = 0;
-let counter = 0;
+let player1Choice = "X";
+let player2Choice = "O";
+let player1Score = 0;
+let player2Score = 0;
+let turn = 1;
 
 let clickedCell = 0;
 cells.forEach((cell) => {
   cell.addEventListener("click", function (event) {
-    const clickedCellIndex = event.target.getAttribute("cellIndex");
-    let clickedCell = cells[clickedCellIndex];
+    let clickedCellIndex = event.target.getAttribute("cellIndex");
+    clickedCell = cells[clickedCellIndex];
     click();
   });
 });
 
 function swap() {
-  if (swapText.innerText === "X") {
-    swapText.innerText = "O";
-    playerChoice = "O";
-    computerChoice = "X";
+  if (checkActive() == false) {
+    if (swapText.innerText === "X") {
+      swapText.innerText = "O";
+      player1Choice = "O";
+      player2Choice = "X";
+    } else {
+      swapText.innerText = "X";
+      player1Choice = "X";
+      player2Choice = "O";
+    }
   } else {
-    swapText.innerText = "X";
-    playerChoice = "X";
-    computerChoice = "O";
+    statusText.innerHTML = "Please restart or finish the game before swapping.";
   }
 }
 
@@ -46,6 +53,7 @@ swapBtn.addEventListener("click", function () {
 
 function startGame() {
   swapText.innerText = "X";
+  statusText.innerText = "Player 1 Turn";
 }
 
 function checkWin(player) {
@@ -63,70 +71,50 @@ function checkWin(player) {
   return false;
 }
 
-function addCount(player) {
-  if (player === playerChoice) {
-    playerScore++;
-    document.querySelector(".counter").innerText = playerScore;
-  } else if (player === computerChoice) {
-    computerScore++;
-    document.querySelector(".counter").innerText = computerScore;
-  }
-}
-
 function click() {
-  event.target.classList.add("userClicked");
-
-  if (event.target.innerText === "") {
-    event.target.innerText = playerChoice;
-
-    if (checkWin(playerChoice)) {
-      statusText.innerText = "Player Wins!";
-      return;
-    }
-
-    computerMove();
-
-    if (checkWin(computerChoice)) {
-      statusText.innerText = "Computer Wins!";
-    }
-  } else if (
-    event.target.classList.contains("computerClicked") ||
-    event.target.classList.contains("userClicked")
-  ) {
-    statusText.innerText = "Cell already clicked!";
+  if (turn == 1) {
+    clickedCell.innerHTML = player1Choice;
+    statusText.innerHTML = "Player 2 Turn";
+    turn = 2
+    
+  } else {
+    clickedCell.innerHTML = player2Choice;
+    statusText.innerHTML = "Player 1 Turn";
+    turn = 1
   }
 }
 
 resetButton.addEventListener("click", function () {
-  resetGame();
-  resetButton.classList.remove("userClicked");
+  cells.forEach((cell) => {
+    cell.innerHTML = "";
+  });
+  statusText.innerText = "Player 1 Turn";
+  turn = 1;
 });
 
-function resetGame() {
-  statusText.innerText = "";
-  for (let i = 0; i < cells.length; i++) {
-    cells[i].classList.remove("userClicked");
-    cells[i].classList.remove("computerClicked");
-  }
-  for (let i = 0; i < cells.length; i++) {
-    cells[i].innerText = "";
-  }
+function checkActive() {
+  let count = 0;
+  cells.forEach((cell) => {
+    if (cell.innerHTML !== "") {
+      count++;
+    }
+  });
 
-  let computerChoiceFirst = Math.floor(Math.random() * 3);
-  if (computerChoiceFirst === 0) {
-    computerMove();
+  if (count > 0) {
+    return true;
   } else {
+    return false;
   }
 }
 
-function computerMove() {
-  let computerCellChoice = Math.floor(Math.random() * cells.length);
-  event.target.classList.add("computerClicked");
-  if (cells[computerCellChoice].innerText === "") {
-    cells[computerCellChoice].innerText = computerChoice;
-    cells[computerCellChoice].classList.add("computerClicked");
-  } else {
-    computerMove();
+
+function addCount(player) {
+  if (player === 1) {
+    player1Score++;
+    p1Score.innerHTML = player1Score;
+  } else if (player === 2) {
+    player2Score++;
+    p2Score.innerHTML = player2Score;
   }
 }
 
