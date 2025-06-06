@@ -1,15 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BlackJack V1.1</title>
-</head>
-<body>
-    
-
-
+    <link rel="icon" href="fspade.png" type="image/x-icon">
+    <link rel="stylesheet" href="bjv1.1.css">
+  </head>
+  <body>
+    <div class="header">
+      <h1 class="result">Welcome to BlackJack, hit to start playing!</h1>
+    </div>
+    <div class="dealer">
+      <div class="dealerCards"></div>
+      <div class="dealerScoreDisplay">
+        <h2 class="dealerScore"></h2>
+      </div>
+    </div>
+    <div class="player">
+      <div class="playerCards"></div>
+      <div class="playerScoreDisplay">
+        <h2 id="playerScore"></h2>
+      </div>
+    </div>
+    <div class="buttons">
+      <button id="hitButton">Hit</button>
+      <button id="standButton">Stand</button>
+      <button id="resetButton">Reset</button>
+      <button id="shuffleButton">Shuffle</button>
+    </div>
+    <div class="bet">
+      <input type="number" id="betAmount" />
+      <button id="add5"></button>
+      <button id="take5"></button>
+    </div>
 
     <script src="bjv1.1.js"></script>
-</body>
+  </body>
 </html>
