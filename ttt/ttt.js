@@ -4,7 +4,6 @@ const swapBtn = document.getElementById("swapBtn");
 const playerText = document.getElementById("playerText");
 const p1Score = document.getElementById("p1Score");
 const p2Score = document.getElementById("p2Score");
-let computerCellChoice = 0;
 let statusText = document.getElementById("statusText");
 let winningArrays = {
   0: [0, 1, 2],
@@ -75,12 +74,17 @@ function click() {
   if (turn == 1) {
     clickedCell.innerHTML = player1Choice;
     statusText.innerHTML = "Player 2 Turn";
-    turn = 2
-    
+    turn = 2;
   } else {
     clickedCell.innerHTML = player2Choice;
     statusText.innerHTML = "Player 1 Turn";
-    turn = 1
+    turn = 1;
+  }
+
+  if (checkWin("X") == true) {
+    checkWin("X");
+  } else if (checkWin("O") == true) {
+    checkWin("O");
   }
 }
 
@@ -106,13 +110,20 @@ function checkActive() {
     return false;
   }
 }
-
-
+let i = 0;
 function addCount(player) {
-  if (player === 1) {
+  i++
+  console.log(i)
+  if ((player == "X") & (player1Choice == "X")) {
     player1Score++;
     p1Score.innerHTML = player1Score;
-  } else if (player === 2) {
+  } else if ((player == "O") & (player1Choice == "O")) {
+    player1Score++;
+    p1Score.innerHTML = player1Score;
+  } else if ((player == "X") & (player2Choice == "X")) {
+    player2Score++;
+    p2Score.innerHTML = player2Score;
+  } else if ((player == "O") & (player2Choice == "O")) {
     player2Score++;
     p2Score.innerHTML = player2Score;
   }
