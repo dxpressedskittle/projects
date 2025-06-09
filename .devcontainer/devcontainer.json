@@ -22,3 +22,4 @@
     }
   }
 }
+// this custom config installs npm and runs a server off localport 8081
