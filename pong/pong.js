@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     return { dx, dy, speed };
   }
 
-  getRandomDirectionWithSpeed(1, 7);
+  console.log(getRandomDirectionWithSpeed(1, 7));
 
   const ball = document.getElementById("ball");
   const box = document.getElementById("box");
