@@ -8,8 +8,12 @@ for (let i = 0; i < 100; i++) {
 // Merge sort
 
 let arrayStorage = [];
+let tempArrayStorage = [];
 
 function mergeSort(arr) {
+  arrayStorage = [];
+  arrayStorage = tempArrayStorage;
+  
   if (arrayStorage.length == 0) {
     // If there arrayStorage is empty then it sets the first unit in the array to the unsorted array
     arrayStorage.splice(0, 0, arr);
@@ -27,19 +31,14 @@ function mergeSort(arr) {
       for (let j = 0; j < currentArray.length / 2; j++) {
         l.push(currentArray[j + r.length]);
       }
-      arrayStorage.splice(i, 1, l);
-      arrayStorage.splice(i + 1, 0, r);
+      tempArrayStorage.splice(i, 1, l);
+      tempArrayStorage.splice(i + 1, 0, r);
     }
     console.log(arrayStorage);
   }
+}
 
-  /* let arrayLength = arr.length;
-  for (i = 0; i < arrayLength / 2; i++) {
-    r.push(unsortedArray[i]);
-  }
-  for (i = 0; i < arrayLength / 2; i++) {
-    l.push(unsortedArray[i + r.length]);
-  }
 
-  */
+function split(arr) {
+  
 }

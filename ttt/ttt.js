@@ -63,7 +63,7 @@ function checkWin(player) {
       cells[b].innerText === player &&
       cells[c].innerText === player
     ) {
-      addCount(player);
+      addCount(player, player1Choice, player2Choice);
       return true;
     }
   }
@@ -110,22 +110,13 @@ function checkActive() {
     return false;
   }
 }
-let i = 0;
-function addCount(player) {
-  i++
-  console.log(i)
-  if ((player == "X") & (player1Choice == "X")) {
+function addCount(player, player1Choice, player2Choice) {
+  if (player == player1Choice) {
     player1Score++;
-    p1Score.innerHTML = player1Score;
-  } else if ((player == "O") & (player1Choice == "O")) {
-    player1Score++;
-    p1Score.innerHTML = player1Score;
-  } else if ((player == "X") & (player2Choice == "X")) {
+    p1Score.innerText = player1Score;
+  } else if (player == player2Choice) {
     player2Score++;
-    p2Score.innerHTML = player2Score;
-  } else if ((player == "O") & (player2Choice == "O")) {
-    player2Score++;
-    p2Score.innerHTML = player2Score;
+    p2Score.innerText = player2Score;
   }
 }
 
