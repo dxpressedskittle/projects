@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   const animate = () => {
     move();
+    movePaddle();
     window.requestAnimationFrame(animate);
   };
 
@@ -76,7 +77,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   let x = 400;
   let y = 300;
   let xSpeed = getRandomInt(5, 7);
-  let ySpeed = getRandomInt(0, 7);
+  let ySpeed = getRandomInt(4, 7);
   ball.style.left = x + "px";
   ball.style.top = y + "px";
   ball.style.visibility = "hidden";
@@ -141,6 +142,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   }
 
   let hitCount = 0;
+
   function moveBall() {
     x += xSpeed;
     y += ySpeed;
@@ -162,6 +164,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
       hitCount++;
       console.log(hitCount);
       if (hitCount % 3 == 0) {
+        console.log(ball.xSpeed, ball.ySpeed);
         ball.xSpeed = ball.xSpeed * 1.1;
         ball.ySpeed = ball.ySpeed * 1.1;
         console.log(parseInt(ball.xSpeed));
@@ -179,6 +182,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
       hitCount++;
       console.log(hitCount);
       if (hitCount % 3 == 0) {
+        console.log(ball.xSpeed, ball.ySpeed);
         ball.xSpeed = ball.xSpeed * 1.1;
         ball.ySpeed = ball.ySpeed * 1.1;
         console.log(parseInt(ball.xSpeed));
