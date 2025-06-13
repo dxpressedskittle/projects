@@ -63,7 +63,6 @@ function checkWin(player) {
       cells[b].innerText === player &&
       cells[c].innerText === player
     ) {
-      addCount(player, player1Choice, player2Choice);
       return true;
     }
   }
@@ -71,21 +70,51 @@ function checkWin(player) {
 }
 
 function click() {
-  if (turn == 1) {
+  // Check if already filled
+  if (clickedCell.innerHTML != "") {
+    statusText.innerHTML = "Square already filled! Pick another one.";
+  }
+  // turn system
+  if (turn == 1 && clickedCell.innerHTML == "") {
     clickedCell.innerHTML = player1Choice;
     statusText.innerHTML = "Player 2 Turn";
     turn = 2;
-  } else {
+  } else if (turn == 2 && clickedCell.innerHTML == "") {
     clickedCell.innerHTML = player2Choice;
     statusText.innerHTML = "Player 1 Turn";
     turn = 1;
   }
 
+  // Check if anyone has won the game
   if (checkWin("X") == true) {
-    checkWin("X");
+    addCount("X", player1Choice, player2Choice);
+    statusText.innerHTML = "Player 1 Wins!";
+    disableCells();
   } else if (checkWin("O") == true) {
-    checkWin("O");
+    addCount("O", player1Choice, player2Choice);
+    statusText.innerHTML = "Player 2 Wins!";
+    disableCells();
+    return;
   }
+
+  if (checkActive() == true) {
+    let count = 0;
+    cells.forEach((cell) => {
+      if (cell.innerHTML !== "") {
+        count++;
+      }
+    });
+    if (count == 9) {
+      statusText.innerHTML = "It's a Draw!";
+      disableCells();
+    }
+  }
+}
+function disableCells() {
+  cells.forEach((cell) => {
+    cell.style.pointerEvents = "none";
+    cell.style.disabled = true;
+  });
 }
 
 resetButton.addEventListener("click", function () {
@@ -110,6 +139,7 @@ function checkActive() {
     return false;
   }
 }
+
 function addCount(player, player1Choice, player2Choice) {
   if (player == player1Choice) {
     player1Score++;

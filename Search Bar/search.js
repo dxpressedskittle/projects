@@ -37,10 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-
-  for (let i = 0; i < 50; i++) {
-    numbers.push(i);
-  }
+ 
 
   let newWord = "";
 
@@ -54,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     newWord = "";
   }
 
-  for (let i = 0; i < 10000000; i++) {
+  for (let i = 0; i < 100000; i++) {
     createWord();
   }
 
