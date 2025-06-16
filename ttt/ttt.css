@@ -2,7 +2,7 @@ body {
   background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
   min-height: 100vh;
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -22,7 +22,7 @@ body {
 }
 
 #gameContainer > h1:first-child {
-  font-family: 'Permanent Marker', cursive;
+  font-family: "Permanent Marker", cursive;
   font-size: 2.8rem;
   color: #4f46e5;
   margin-bottom: 20px;
@@ -94,8 +94,9 @@ body {
   cursor: not-allowed;
 }
 
-#restartBtn, .swapBtn {
-  font-family: 'Permanent Marker', cursive;
+#restartBtn,
+.swapBtn {
+  font-family: "Permanent Marker", cursive;
   font-size: 1.1rem;
   padding: 12px 28px;
   border: none;
@@ -126,7 +127,7 @@ body {
 }
 
 .swapText {
-  font-family: 'Permanent Marker', cursive;
+  font-family: "Permanent Marker", cursive;
   font-size: 2.2rem;
   color: #6366f1;
   text-shadow: 1px 1px 2px rgba(99, 102, 241, 0.13);
@@ -139,7 +140,7 @@ body {
     grid-template-rows: repeat(3, 70px);
     gap: 8px;
   }
-  
+
   .cell {
     width: 70px;
     height: 70px;
@@ -151,3 +152,4 @@ body {
     gap: 10px;
   }
 }
+

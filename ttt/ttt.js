@@ -117,10 +117,18 @@ function disableCells() {
   });
 }
 
+function enableCells() {
+  cells.forEach((cell) => {
+    cell.style.pointerEvents = "auto";
+    cell.style.disabled = false;
+  });
+}
+
 resetButton.addEventListener("click", function () {
   cells.forEach((cell) => {
     cell.innerHTML = "";
   });
+  enableCells();
   statusText.innerText = "Player 1 Turn";
   turn = 1;
 });
