@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>API's</title>
+    <link rel="stylesheet" href="apiindex.css" />
+  </head>
+  <body>
+    <main>
+      <h1 class="h1txt">API's</h1>
+      <section class="projects-list">
+        <article class="project-card in-progress">
+          <h2>Find my location</h2>
+          <span class="status status-in-progress">In progress</span>
+          <p>Use's an API to find you're location</p>
+          <div class="versions">
+            <button
+              class="version-btn"
+              data-url="Find my location/fml.html"
+              data-version="1.0"
+            >
+              Version 1
+            </button>
+          </div>
+        </article>
+
+        
+    <footer>
+      <p>
+        Created by
+        <a href="https://github.com/dxpressedskittle" target="_blank"
+          >Dxpressedskittle</a
+        >
+      </p>
+    </footer>
+
+    <script>
+      document.querySelectorAll(".version-btn").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const url = btn.getAttribute("data-url");
+          if (url) {
+            window.location.href = url;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

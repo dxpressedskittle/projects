@@ -5,6 +5,28 @@ for (let i = 0; i < 100; i++) {
   unsortedArray.push(Math.floor(Math.random() * 1000));
 }
 
+
+/*
+
+function selectionSort(arr) {
+  let sortedArray = [];
+  for (i = 0; i < arr.length; i++) {
+    let smallestNum = -1
+    arr.forEach((element) => {
+      if (smallestNum == -1) {
+        smallestNum = element
+      } else if (element < smallestNum) {
+        smallestNum = element
+      }
+    })
+    console.log(smallestNum)
+
+  }
+}
+  */
+
+
+
 // Merge sort
 
 let arrayStorage = [];
@@ -34,11 +56,12 @@ function mergeSort(arr) {
       tempArrayStorage.splice(i, 1, l);
       tempArrayStorage.splice(i + 1, 0, r);
     }
-    console.log(arrayStorage);
+   // console.log(arrayStorage);
   }
 }
 
 
-function split(arr) {
-  
-}
+mergeSort(unsortedArray)
+mergeSort(unsortedArray)
+mergeSort(unsortedArray)
+
