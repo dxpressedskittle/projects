@@ -165,6 +165,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
       console.log(hitCount);
       if (hitCount % 3 == 0) {
         console.log(ball.xSpeed, ball.ySpeed);
+        ball.xSpeed = ball.xSpeed
+        ball.ySpeed = ball.ySpeed 
         ball.xSpeed = ball.xSpeed * 1.1;
         ball.ySpeed = ball.ySpeed * 1.1;
         console.log(parseInt(ball.xSpeed));
