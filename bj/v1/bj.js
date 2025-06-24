@@ -137,7 +137,7 @@ function stand() {
   } else if (dealerScore == playerScore) {
     resultDisplay.innerText =
       "You can't stand when the dealer has the same score! Hit again!";
-  } else if (dealerScore < playerScore && playerScore < 17) {
+  } else if (dealerScore < playerScore && playerScore > 17) {
     dealerCards.push(dealCard());
     checkResults();
   }
@@ -322,6 +322,7 @@ function startGame() {
     "Welcome to Blackjack! Place your bet or play for free to try it out!";
   updateScores();
   count.innerText = position;
+  checkResults();
 }
 
 function addCard() {
@@ -356,3 +357,5 @@ function addCard() {
 
 cardCount = document.getElementById("count");
 startGame();
+
+
