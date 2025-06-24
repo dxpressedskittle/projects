@@ -137,7 +137,7 @@ function stand() {
   } else if (dealerScore == playerScore) {
     resultDisplay.innerText =
       "You can't stand when the dealer has the same score! Hit again!";
-  } else if (dealerScore < playerScore && playerScore < 17) {
+  } else if (dealerScore < playerScore && playerScore > 17) {
     dealerCards.push(dealCard());
     checkResults();
   }
