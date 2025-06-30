@@ -64,11 +64,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
     // Calculate x and y components of the direction vector
     const dx = Math.cos(angle) * speed;
     const dy = Math.sin(angle) * speed;
-    console.log(dx, dy, speed);
     return { dx, dy, speed };
   }
-
-  console.log(getRandomDirectionWithSpeed(1, 7));
 
   const ball = document.getElementById("ball");
   const box = document.getElementById("box");
@@ -164,13 +161,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
       hitCount++;
       console.log(hitCount);
       if (hitCount % 3 == 0) {
-        console.log(ball.xSpeed, ball.ySpeed);
-        ball.xSpeed = ball.xSpeed
-        ball.ySpeed = ball.ySpeed 
-        ball.xSpeed = ball.xSpeed * 1.1;
-        ball.ySpeed = ball.ySpeed * 1.1;
-        console.log(parseInt(ball.xSpeed));
-        console.log(parseInt(ball.ySpeed));
+        xSpeed = xSpeed * 1.1;
+        ySpeed = ySpeed * 1.1;
+        console.log(ySpeed, xSpeed);
       }
     }
     // Right paddle
@@ -184,11 +177,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
       hitCount++;
       console.log(hitCount);
       if (hitCount % 3 == 0) {
-        console.log(ball.xSpeed, ball.ySpeed);
-        ball.xSpeed = ball.xSpeed * 1.1;
-        ball.ySpeed = ball.ySpeed * 1.1;
-        console.log(parseInt(ball.xSpeed));
-        console.log(parseInt(ball.ySpeed));
+        xSpeed = xSpeed * 1.1;
+        ySpeed = ySpeed * 1.1;
+        console.log(ySpeed, xSpeed);
       }
     }
 
