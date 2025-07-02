@@ -14,6 +14,9 @@ const color1 = "#145a32"; // Dark green
 const color2 = "#1e8449"; // Light green
 const snakeColor = "black";
 
+// Animation variables
+let animationID;
+
 // Game variables
 // Snake variables
 let snakeStartingX =
@@ -32,7 +35,8 @@ let snake = [
 ];
 
 let snakeLength = snake.length;
-let snakeDirection = "up";
+let snakeDirection = "right";
+let snakeScore = 0;
 
 // checks if it spawned off the map and if it did then move it foward until its completely on it
 for (i = 0; i < snakeLength; i++) {
@@ -47,10 +51,15 @@ for (i = 0; i < snakeLength; i++) {
 // Apple variables
 
 appleColor = "red";
-apple = {
-  x: Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *50,
-  y: Math.floor((Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50) *50
-}
+
+let apple = {
+  x:
+    Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *
+    50,
+  y:
+    Math.floor((Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50) *
+    50,
+};
 
 function drawBoard() {
   for (let column = 0; column < canvas.height / cellSize; column++) {
@@ -74,7 +83,7 @@ function drawSnake() {
 
 function drawApple() {
   ctx.fillStyle = "red";
-  ctx.fillRect(apple.x,apple.y,50,50)
+  ctx.fillRect(apple.x, apple.y, 50, 50);
 }
 
 function moveSnake(direction) {
@@ -96,13 +105,23 @@ function moveSnake(direction) {
 }
 
 function checkCollision() {
-  for (i=0; i<snakeLength;i++) {
-    if (snake[i].x === apple.x && snake[i].y === apple.y) {
-      snake.x = Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *50
-      snake.y = Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *50
-    }
+  if (snake[0].x === apple.x && snake[0].y === apple.y) {
+    apple.x =
+      Math.floor(
+        (Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50
+      ) * 50;
+    apple.y =
+      Math.floor(
+        (Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50
+      ) * 50;
+    snakeScore++;
   }
 
+  for (i = 1; i < snakeLength; i++) {
+    if (snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
+      gameOver();
+    }
+  }
 
   for (i = 0; i < snakeLength; i++) {
     if (snake[i].x < 0) {
@@ -117,22 +136,46 @@ function checkCollision() {
   }
 }
 
-function checkVertical() {
-  for (let i = 0; i < snake.length - 1; i++) {
-    if (snake[i].x !== snake[i + 1].x) {
-      return false;
-    }
-  }
-  return true;
+function drawScore() {
+  ctx.font = "bold 25px Arial";
+  ctx.fillStyle = "black";
+  ctx.fillText(`Score: ${snakeScore}`, canvas.width / 2, 25);
 }
 
-function checkHorizontal() {
-  for (let i = 0; i < snake.length - 1; i++) {
-    if (snake[i].y !== snake[i + 1].y) {
-      return false;
-    }
-  }
-  return true;
+function gameOver() {
+  snakeScore = 0;
+  ctx.font = "bold 25px Arial";
+  // Randomizes Snake POS
+  snakeStartingX =
+    Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *
+    50;
+  snakeStartingY =
+    Math.floor((Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50) *
+    50;
+  // Randomizes Apple POS
+  apple = {
+    x:
+      Math.floor(
+        (Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50
+      ) * 50,
+    y:
+      Math.floor(
+        (Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50
+      ) * 50,
+  };
+  drawApple()
+  drawSnake()
+  ctx.fillText(
+    "Game Over, Please press e to play again.",
+    canvas.width / 3,
+    canvas.height / 2
+  );
+  stopAnimation();
+}
+
+function stopAnimation() {
+  window.cancelAnimationFrame(animationId);
+  animationId = undefined;
 }
 
 // Control eventlisteners
@@ -151,6 +194,8 @@ document.addEventListener("keydown", (event) => {
     snakeDirection !== "left"
   ) {
     snakeDirection = "right";
+  } else if (key === "e" || key === "E") {
+    window.requestAnimationFrame(animate);
   }
 });
 
@@ -167,6 +212,7 @@ function animate(timeStamp) {
   drawApple();
   moveSnake(snakeDirection);
   checkCollision();
+  drawScore();
 
   secondsPassed = (timeStamp - oldTimeStamp) / 1000;
   oldTimeStamp = timeStamp;
@@ -176,6 +222,6 @@ function animate(timeStamp) {
   ctx.fillText("FPS: " + fps, 10, 30);
 
   setTimeout(() => {
-    window.requestAnimationFrame(animate);
-  }, 1000 / 15);
+    animationID = window.requestAnimationFrame(animate);
+  }, 1000 / 16);
 }
