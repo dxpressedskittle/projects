@@ -53,7 +53,7 @@ function mergeSort(arr) {
       for (let j = 0; j < currentArray.length / 2; j++) {
         l.push(currentArray[j + r.length]);
       }
-      tempArrayStorage.splice(i, 1, l);
+      tempArrayStorage.splice(i, 0, l);
       tempArrayStorage.splice(i + 1, 0, r);
     }
    // console.log(arrayStorage);
