@@ -13,26 +13,31 @@ const cellSize = 50; // Size of each square in pixels
 const color1 = "#145a32"; // Dark green
 const color2 = "#1e8449"; // Light green
 const snakeColor = "black";
+const appleImage = new Image();
 
 // Animation variables
 let animationID;
 
 // Game variables
 // Snake variables
-let snakeStartingX =
-  Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *
-  50;
-let snakeStartingY =
-  Math.floor((Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50) *
-  50;
 
-let snake = [
-  { x: snakeStartingX, y: snakeStartingY },
-  { x: snakeStartingX - 50, y: snakeStartingY },
-  { x: snakeStartingX - 100, y: snakeStartingY },
-  { x: snakeStartingX - 150, y: snakeStartingY },
-  { x: snakeStartingX - 200, y: snakeStartingY },
-];
+function randomizeSnake() {
+  snakeStartingX =
+    Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *
+    50;
+  snakeStartingY =
+    Math.floor((Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50) *
+    50;
+
+  snake = [
+    { x: snakeStartingX, y: snakeStartingY },
+    { x: snakeStartingX - 50, y: snakeStartingY },
+    { x: snakeStartingX - 100, y: snakeStartingY },
+    { x: snakeStartingX - 150, y: snakeStartingY },
+    { x: snakeStartingX - 200, y: snakeStartingY },
+  ];
+}
+randomizeSnake();
 
 let snakeLength = snake.length;
 let snakeDirection = "right";
@@ -82,8 +87,22 @@ function drawSnake() {
 }
 
 function drawApple() {
-  ctx.fillStyle = "red";
-  ctx.fillRect(apple.x, apple.y, 50, 50);
+  ctx.fillStyle = appleColor 
+  ctx.fillRect(apple.x,apple.y,50,50)
+}
+
+
+function randomizeApple() {
+  apple = {
+    x:
+      Math.floor(
+        (Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50
+      ) * 50,
+    y:
+      Math.floor(
+        (Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50
+      ) * 50,
+  };
 }
 
 function moveSnake(direction) {
@@ -100,7 +119,6 @@ function moveSnake(direction) {
   }
 
   snake.unshift(head);
-
   snake.pop();
 }
 
@@ -115,6 +133,10 @@ function checkCollision() {
         (Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50
       ) * 50;
     snakeScore++;
+
+    const tail = snake[snake.length - 1];
+    snake.push({ x: tail.x, y: tail.y });
+    snakeLength = snake.length;
   }
 
   for (i = 1; i < snakeLength; i++) {
@@ -137,34 +159,24 @@ function checkCollision() {
 }
 
 function drawScore() {
-  ctx.font = "bold 25px Arial";
+  ctx.font = "bold 50px Arial";
   ctx.fillStyle = "black";
-  ctx.fillText(`Score: ${snakeScore}`, canvas.width / 2, 25);
+  ctx.fillText(`Score: ${snakeScore}`, (canvas.width/2)-50 , 50);
+}
+
+function startGame() {
+  randomizeSnake();
+  snakeLength = snake.length;
+  randomizeApple();
+  drawApple();
+  drawSnake();
+  isGameOver = false;
+  direction = "right";
 }
 
 function gameOver() {
   snakeScore = 0;
   ctx.font = "bold 25px Arial";
-  // Randomizes Snake POS
-  snakeStartingX =
-    Math.floor((Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50) *
-    50;
-  snakeStartingY =
-    Math.floor((Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50) *
-    50;
-  // Randomizes Apple POS
-  apple = {
-    x:
-      Math.floor(
-        (Math.floor(Math.random() * (canvas.width - 0 + 1)) + 0) / 50
-      ) * 50,
-    y:
-      Math.floor(
-        (Math.floor(Math.random() * (canvas.height - 0 + 1)) + 0) / 50
-      ) * 50,
-  };
-  drawApple()
-  drawSnake()
   ctx.fillText(
     "Game Over, Please press e to play again.",
     canvas.width / 3,
@@ -173,9 +185,11 @@ function gameOver() {
   stopAnimation();
 }
 
+let isGameOver = false;
 function stopAnimation() {
-  window.cancelAnimationFrame(animationId);
-  animationId = undefined;
+  window.cancelAnimationFrame(animationID);
+  animationID = undefined;
+  isGameOver = true;
 }
 
 // Control eventlisteners
@@ -195,7 +209,8 @@ document.addEventListener("keydown", (event) => {
   ) {
     snakeDirection = "right";
   } else if (key === "e" || key === "E") {
-    window.requestAnimationFrame(animate);
+    startGame();
+    animationID = window.requestAnimationFrame(animate);
   }
 });
 
@@ -213,15 +228,19 @@ function animate(timeStamp) {
   moveSnake(snakeDirection);
   checkCollision();
   drawScore();
+  
 
   secondsPassed = (timeStamp - oldTimeStamp) / 1000;
   oldTimeStamp = timeStamp;
   fps = Math.round(1 / secondsPassed);
   ctx.font = "25px Arial";
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   ctx.fillText("FPS: " + fps, 10, 30);
 
   setTimeout(() => {
-    animationID = window.requestAnimationFrame(animate);
-  }, 1000 / 16);
+    if (isGameOver === false) {
+      animationID = window.requestAnimationFrame(animate);
+    }
+  }, 1000 / 20);
 }
+
