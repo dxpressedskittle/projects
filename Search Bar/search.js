@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const resultDisplay = document.getElementById("result");
   const input = document.getElementById("input");
-  let numbers = [];
+  let result = document.getElementById("results");
   let letters = [
     "A",
     "B",
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     newWord = "";
   }
 
-  for (let i = 0; i < 100000; i++) {
+  for (let i = 0; i < 1000; i++) {
     createWord();
   }
 
@@ -75,5 +75,17 @@ document.addEventListener("DOMContentLoaded", function () {
   input.addEventListener("input", function () {
     inputValue = document.getElementById("input").value;
     search(wordArray, inputValue);
+    
   });
 });
+
+
+function showText() {
+  for (i=0;i<sortedArray.length;i++) {
+    div = document.createElement("div")
+    div.innerText = wordArray[i]
+    result.appendChild(div)
+  }
+}
+
+
