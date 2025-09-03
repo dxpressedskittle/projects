@@ -1,40 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BlackJack V1.1</title>
-    <link rel="icon" href="fspade.png" type="image/x-icon">
-    <link rel="stylesheet" href="bjv1.1.css">
-  </head>
-  <body>
-    <div class="header">
-      <h1 class="result">Welcome to BlackJack, hit to start playing!</h1>
-    </div>
-    <div class="dealer">
-      <div class="dealerCards"></div>
-      <div class="dealerScoreDisplay">
-        <h2 class="dealerScore"></h2>
-      </div>
-    </div>
-    <div class="player">
-      <div class="playerCards"></div>
-      <div class="playerScoreDisplay">
-        <h2 id="playerScore"></h2>
-      </div>
-    </div>
-    <div class="buttons">
-      <button id="hitButton">Hit</button>
-      <button id="standButton">Stand</button>
-      <button id="resetButton">Reset</button>
-      <button id="shuffleButton">Shuffle</button>
-    </div>
-    <div class="bet">
-      <input type="number" id="betAmount" />
-      <button id="add5"></button>
-      <button id="take5"></button>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <title>Blackjack Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #004d00, #001a00);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+    }
+    canvas {
+      border: 4px solid #fff;
+      background-color: #006400;
+      border-radius: 12px;
+      margin-top: 20px;
+      box-shadow: 0 0 20px black;
+    }
+    #controls, #startMenu, #bettingRound {
+      margin: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    input, button, select {
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background-color: #222;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    #soundControl {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Blackjack</h1>
 
-    <script src="bjv1.1.js"></script>
-  </body>
+  <div id="startMenu">
+    <label>Starting Balance: $<input type="number" id="startBalance" value="1000" /></label>
+    <button onclick="initGame()">Start Game</button>
+    <label>Sound: <select id="soundToggle">
+      <option value="on">On</option>
+      <option value="off">Off</option>
+    </select></label>
+  </div>
+
+  <canvas id="gameCanvas" width="1000" height="600" style="display:none;"></canvas>
+
+  <div id="bettingRound" style="display:none;">
+    <label>Place your bet:</label>
+    <button onclick="placeBet(10)">$10</button>
+    <button onclick="placeBet(50)">$50</button>
+    <button onclick="placeBet(100)">$100</button>
+    <button onclick="dealCards()">Deal</button>
+  </div>
+
+  <div id="controls" style="display:none;">
+    <button onclick="hit()">Hit</button>
+    <button onclick="stand()">Stand</button>
+  </div>
+
+  <audio id="dealSound" src="https://www.soundjay.com/button/sounds/button-29.mp3"></audio>
+  <audio id="chipSound" src="https://www.soundjay.com/misc/sounds/coins-drop-1.mp3"></audio>
+  <audio id="winSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const dealSound = document.getElementById("dealSound");
+    const chipSound = document.getElementById("chipSound");
+    const winSound = document.getElementById("winSound");
+
+    let deck, playerHand, dealerHand, playerBalance = 1000, currentBet = 0, gameOver = false;
+    let animations = [], soundOn = true;
+
+    const suits = ["♠", "♥", "♦", "♣"];
+    const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+    function initGame() {
+      const startBal = parseInt(document.getElementById("startBalance").value);
+      playerBalance = isNaN(startBal) ? 1000 : startBal;
+      soundOn = document.getElementById("soundToggle").value === "on";
+
+      document.getElementById("startMenu").style.display = "none";
+      document.getElementById("gameCanvas").style.display = "block";
+      document.getElementById("bettingRound").style.display = "flex";
+
+      drawHands();
+    }
+
+    function createDeck() {
+      let newDeck = [];
+      for (let suit of suits) {
+        for (let value of values) {
+          newDeck.push({ suit, value });
+        }
+      }
+      return shuffle(newDeck);
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function drawCard(x, y, card, rotation = 0) {
+      ctx.save();
+      ctx.translate(x + 40, y + 60);
+      ctx.rotate(rotation);
+      ctx.translate(-40, -60);
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.fillRect(0, 0, 80, 120);
+      ctx.strokeRect(0, 0, 80, 120);
+      ctx.fillStyle = card.suit === "♥" || card.suit === "♦" ? "red" : "black";
+      ctx.font = "20px Arial";
+      ctx.fillText(card.value, 8, 25);
+      ctx.fillText(card.suit, 8, 45);
+      ctx.fillText(card.value, 60, 115);
+      ctx.fillText(card.suit, 60, 95);
+      ctx.restore();
+    }
+
+    function drawHiddenCard(x, y) {
+      ctx.fillStyle = "#2222aa";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.fillRect(x, y, 80, 120);
+      ctx.strokeRect(x, y, 80, 120);
+      ctx.fillStyle = "white";
+      ctx.font = "16px Arial";
+      ctx.fillText("?", x + 35, y + 65);
+    }
+
+    function drawChips() {
+      const xStart = 400;
+      const y = 540;
+      [10, 50, 100].forEach((val, i) => {
+        ctx.beginPath();
+        ctx.arc(xStart + i * 100, y, 30, 0, Math.PI * 2);
+        ctx.fillStyle = ["red", "blue", "yellow"][i];
+        ctx.fill();
+        ctx.fillStyle = "black";
+        ctx.font = "bold 16px Arial";
+        ctx.fillText(`$${val}`, xStart + i * 100 - 15, y + 5);
+      });
+    }
+
+    function drawHands() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      ctx.font = "24px Arial";
+      ctx.fillText(`Balance: $${playerBalance}`, 20, 30);
+      ctx.fillText(`Bet: $${currentBet}`, 20, 60);
+
+      drawChips();
+
+      if (!playerHand || !dealerHand) return;
+
+      ctx.fillText("Dealer's Hand:", 20, 110);
+      dealerHand.forEach((card, i) => {
+        let x = 20 + i * 90;
+        if (i === 0 && !gameOver) drawHiddenCard(x, 120);
+        else drawCard(x, 120, card);
+      });
+
+      ctx.fillText("Your Hand:", 20, 300);
+      playerHand.forEach((card, i) => drawCard(20 + i * 90, 310, card));
+
+      if (gameOver) {
+        ctx.fillStyle = "yellow";
+        ctx.fillText(`Dealer Total: ${handValue(dealerHand)}`, 20, 270);
+        ctx.fillText(`Player Total: ${handValue(playerHand)}`, 20, 480);
+      }
+    }
+
+    function cardValue(card) {
+      if (["J", "Q", "K"].includes(card.value)) return 10;
+      if (card.value === "A") return 11;
+      return parseInt(card.value);
+    }
+
+    function handValue(hand) {
+      let value = 0, aces = 0;
+      hand.forEach(card => {
+        value += cardValue(card);
+        if (card.value === "A") aces++;
+      });
+      while (value > 21 && aces > 0) {
+        value -= 10;
+        aces--;
+      }
+      return value;
+    }
+
+    function placeBet(amount) {
+      if (amount > playerBalance) {
+        alert("Not enough balance.");
+        return;
+      }
+      currentBet = amount;
+      playerBalance -= amount;
+      if (soundOn) chipSound.play();
+      drawHands();
+    }
+
+    function dealCards() {
+      if (currentBet <= 0) {
+        alert("Place a bet first.");
+        return;
+      }
+      deck = createDeck();
+      playerHand = [deck.pop(), deck.pop()];
+      dealerHand = [deck.pop(), deck.pop()];
+      gameOver = false;
+
+      document.getElementById("controls").style.display = "flex";
+      document.getElementById("bettingRound").style.display = "none";
+      if (soundOn) dealSound.play();
+
+      drawHands();
+    }
+
+    function hit() {
+      if (gameOver) return;
+      playerHand.push(deck.pop());
+      if (soundOn) dealSound.play();
+      if (handValue(playerHand) > 21) {
+        gameOver = true;
+        alert("Bust! You lose.");
+        resetRound();
+      }
+      drawHands();
+    }
+
+    function stand() {
+      if (gameOver) return;
+      while (handValue(dealerHand) < 17) dealerHand.push(deck.pop());
+      const p = handValue(playerHand), d = handValue(dealerHand);
+      gameOver = true;
+
+      if (d > 21 || p > d) {
+        alert("You win!");
+        playerBalance += currentBet * 2;
+        if (soundOn) winSound.play();
+      } else if (p === d) {
+        alert("Push.");
+        playerBalance += currentBet;
+      } else {
+        alert("Dealer wins.");
+      }
+      resetRound();
+      drawHands();
+    }
+
+    function resetRound() {
+      document.getElementById("controls").style.display = "none";
+      document.getElementById("bettingRound").style.display = "flex";
+      currentBet = 0;
+    }
+  </script>
+</body>
 </html>
