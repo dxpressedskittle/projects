@@ -7,11 +7,11 @@ const vw = viewportWidth / 100;
 // Canvas variables
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = Math.floor(viewportWidth / 50) * 50; // Set canvas width
-canvas.height = Math.floor(viewPortHeight / 50) * 50; // Set canvas height
+canvas.width = Math.floor(viewportWidth / 50) * 50; 
+canvas.height = Math.floor(viewPortHeight / 50) * 50; 
 const cellSize = 50; // Size of each square in pixels
-const color1 = "#145a32"; // Dark green
-const color2 = "#1e8449"; // Light green
+const color1 = "#145a32"; 
+const color2 = "#1e8449"; 
 const snakeColor = "black";
 const appleImage = new Image();
 
@@ -19,7 +19,15 @@ const appleImage = new Image();
 let animationID;
 
 // Game variables
+
 // Snake variables
+let snakeSpeed = 93
+
+const snakeSpeedInput = document.getElementById("snakeSpeed")
+
+snakeSpeedInput.addEventListener(`change`, (event) => {
+  snakeSpeed = document.getElementById("snakeSpeed").value
+})
 
 function randomizeSnake() {
   snakeStartingX =
@@ -166,7 +174,6 @@ function drawScore() {
 
 function startGame() {
   randomizeSnake();
-  snakeLength = snake.length;
   randomizeApple();
   drawApple();
   drawSnake();
@@ -217,6 +224,7 @@ document.addEventListener("keydown", (event) => {
 let secondsPassed;
 let oldTimeStamp;
 let fps;
+
 window.requestAnimationFrame(animate);
 
 function animate(timeStamp) {
@@ -229,6 +237,7 @@ function animate(timeStamp) {
   checkCollision();
   drawScore();
   
+  
 
   secondsPassed = (timeStamp - oldTimeStamp) / 1000;
   oldTimeStamp = timeStamp;
@@ -236,11 +245,14 @@ function animate(timeStamp) {
   ctx.font = "25px Arial";
   ctx.fillStyle = "white";
   ctx.fillText("FPS: " + fps, 10, 30);
+  
 
   setTimeout(() => {
     if (isGameOver === false) {
       animationID = window.requestAnimationFrame(animate);
     }
-  }, 1000 / 20);
+  }, 40);
+
+  
 }
 

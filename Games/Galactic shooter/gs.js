@@ -15,7 +15,26 @@ let animationID;
 let imageLoaded = false;
 
 // Img variables
-let ship = new Image()
+const ship = new Image();
 
-ship.src = "imgs/Galactic Shooter/ship.png"
+ship.src = "../imgs/Galactic Shooter/ship.png";
 
+ctx.drawImgage(ship, 100, 100, 50, 50)
+
+
+document.addEventListener(`keypress`, function (event) {
+    const code = event.code
+    if (code === "KeyW") {
+
+    }
+
+})
+
+
+function animate() {
+
+    animationID = requestAnimationFrame(animate)
+
+}
+
+console.log("hello")

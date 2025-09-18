@@ -20,6 +20,8 @@ let bird = {
   x: 200,
   y: 200,
   yVel: 1,
+  height: 20*vh,
+  width: 10*vw
 };
 
 const birdImg = new Image();
@@ -31,6 +33,10 @@ pipe2Img.src = "../imgs/FlappyBird/pipe2.jpg";
 
 // Game variables
 let isGameOver = true;
+
+let secondsPassed
+let oldTimeStamp
+let fps
 
 //Pipe variables
 
@@ -57,7 +63,13 @@ function clearFrame() {
 
 function drawBird() {
   if (birdLoaded) {
-    ctx.drawImage(birdImg, bird.x, bird.y, 10 * vw, 20 * vh);
+    ctx.drawImage(birdImg, bird.x, bird.y, bird.height, bird.width);
+
+    // Debugging
+    ctx.strokeStyle = "red"
+    ctx.beginPath()
+    ctx.arc(bird.x, bird.y, 10, 0, 2*Math.PI)
+    ctx.stroke()
   }
 }
 
@@ -67,8 +79,8 @@ function moveBird() {
 
 function checkCollision() {
   // If the bird goes off the screen
-  for (i=0;i<pipes.length;i++) {
-    
+  if (bird.y + bird.height >= canvas.height || bird.y <= 0) {
+    cancelAnimationFrame(animationID)
   }
 }
 
@@ -103,7 +115,7 @@ setInterval(function () {
   const topPipe = { x: pipeX, y: topPipeHeight, flipped: true };
   const bottomPipe = { x: pipeX, y: bottomPipeY, flipped: false };
   pipes.push(topPipe, bottomPipe);
-}, 3000);
+}, 3);
 
 function drawPipes() {
   for (i = 0; i < pipes.length; i++) {
@@ -140,7 +152,10 @@ document.addEventListener("keypress", function (event) {
   }
 });
 
-function animate() {
+function animate(timeStamp) {
+  if (!oldTimeStamp) oldTimeStamp = timeStamp
+
+
   clearFrame();
   drawBird();
   drawPipes();
@@ -152,13 +167,12 @@ function animate() {
   if (isGameOver == true) {
     cancelAnimationFrame(animationID);
   }
-
-
+  
   secondsPassed = (timeStamp - oldTimeStamp) / 1000;
   oldTimeStamp = timeStamp;
   fps = Math.round(1 / secondsPassed);
   ctx.font = "25px Arial";
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "black";
   ctx.fillText("FPS: " + fps, 10, 30);
 }
 
