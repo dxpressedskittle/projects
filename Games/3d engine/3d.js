@@ -106,9 +106,9 @@ function registerScene(objOrFactory) {
   scene.push(objOrFactory);
   return objOrFactory;
 }
-// register defaults
-registerScene(floor);
-registerScene(cube);
+
+registerScene(floor); // register defaults
+registerScene(cube);  // register defaults
 
 // --- Camera & globals ---
 
@@ -117,13 +117,23 @@ let mouseLocked = false;
 let cameraYaw = 0;
 let cameraPitch = 0;
 
+// --- Movement variables ---
+
+const velocity = [0, 0, 0];
+const maxSpeed = 4.0;
+const accel = 50.0;
+const damping = 8.0;
+const gravity = 20.0; // positive pulls down (y axis is flipped fix laterr)
+const jumpSpeed = -8.0;
+
 // 3D to 2D projection 
+
 function transform(v) {
   const z = v[2];
   const safeZ = z <= 0.001 ? 0.001 : z;
   const f = fov / safeZ;
   return [v[0] * f, v[1] * f];
-}
+} 
 
 // Rotation helpers
 function rotateY(v, angle) {
@@ -171,13 +181,6 @@ document.addEventListener("keyup", (e) => {
   if (e.code === "Space") keys["space"] = false;
 });
 
-const velocity = [0, 0, 0];
-const MAX_SPEED = 4.0;
-const ACCEL = 50.0;
-const DAMPING = 8.0;
-const GRAVITY = 20.0; // positive pulls down (y axis is flipped fix laterr)
-const JUMP_SPEED = -8.0;
-
 // Pointer lock / mouse look
 if (canvasEl) {
   canvasEl.addEventListener("click", async () => {
@@ -222,14 +225,14 @@ function draw(ts) {
     fz = Math.cos(cameraYaw);
   const rx = Math.sin(cameraYaw - Math.PI / 2),
     rz = Math.cos(cameraYaw - Math.PI / 2);
-  const desiredVx = (-fx * forwardInput - rx * strafeInput) * MAX_SPEED;
-  const desiredVz = (fz * forwardInput + rz * strafeInput) * MAX_SPEED;
+  const desiredVx = (-fx * forwardInput - rx * strafeInput) * maxSpeed;
+  const desiredVz = (fz * forwardInput + rz * strafeInput) * maxSpeed;
   const dvx = desiredVx - velocity[0];
   const dvz = desiredVz - velocity[2];
-  const maxDelta = ACCEL * dt;
+  const maxDelta = accel * dt;
   velocity[0] += Math.abs(dvx) > maxDelta ? Math.sign(dvx) * maxDelta : dvx;
   velocity[2] += Math.abs(dvz) > maxDelta ? Math.sign(dvz) * maxDelta : dvz;
-  const damp = Math.exp(-DAMPING * dt);
+  const damp = Math.exp(-damping * dt);
   velocity[0] *= damp;
   velocity[2] *= damp;
   camera[0] += velocity[0] * dt;
@@ -240,11 +243,11 @@ function draw(ts) {
   const jumpPressed = keys["space"];
   const isGrounded = camera[1] === groundY;
   if (jumpPressed && isGrounded) {
-    velocity[1] = JUMP_SPEED;
+    velocity[1] = jumpSpeed;
   }
 
   // apply gravity 
-  velocity[1] += GRAVITY * dt;
+  velocity[1] += gravity * dt;
   camera[1] += velocity[1] * dt;
 
   // clamp to ground and stop downward velocity
@@ -280,9 +283,14 @@ function draw(ts) {
 
   // Debug info
   
+  // FPS
   secondsPassed = (ts - oldTimeStamp) / (60 * 16.6666666667); // set to 60 fps
   oldTimeStamp = ts;
   fps = Math.round(1 / secondsPassed);
+
+  // Memory performance 
+  const memoryUsage = performance.memory
+
   
   ctx.fillStyle = "#000";
   ctx.font = "16px Arial";
@@ -292,6 +300,7 @@ function draw(ts) {
   ctx.fillText(`Yaw: ${(cameraYaw * (180 / Math.PI)).toFixed(2)}`, 10, 80);
   ctx.fillText(`Pitch: ${(cameraPitch * (180 / Math.PI)).toFixed(2)}`, 10, 100);
   ctx.fillText(`FPS: ${fps}`, 10, 120);
+  ctx.fillText(`JS Heap: ${memoryUsage ? (memoryUsage.usedJSHeapSize / 1048576).toFixed(2) + ' MB' : 'N/A'} / ${(memoryUsage.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB'}`, 10, 140);
 
   // Draws crosshair 
   ctx.strokeStyle = "#f00";
@@ -301,8 +310,9 @@ function draw(ts) {
   ctx.moveTo(canvas.width / 2, canvas.height / 2 - 10);
   ctx.lineTo(canvas.width / 2, canvas.height / 2 + 10);
   ctx.stroke();
+
   
 }
 
-// start the loop
+
 requestAnimationFrame(draw);
