@@ -17,7 +17,9 @@ html,body{height:100%}
 body{
   margin:0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background: linear-gradient(180deg,var(--bg), #041018 160%);
+  /* use a simpler background to reduce heavy paint cost on some browsers */
+  background-color: var(--bg);
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.01), transparent 40%);
   color:#e6eef3;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
@@ -41,16 +43,18 @@ main{max-width:1280px;margin:0 auto}
 }
 
 .project-card{
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.03);
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  border:1px solid rgba(255,255,255,0.02);
   padding:26px;
   border-radius:18px;
-  box-shadow: 0 12px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
-  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s, border-color .18s;
+  /* reduce blur/spread to lower paint cost */
+  box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+  transition: transform .22s ease, box-shadow .22s ease;
   min-height:180px;
   display:flex;flex-direction:column;gap:14px;
+  will-change: transform;
 }
-.project-card:hover{transform:translateY(-10px);box-shadow:0 34px 80px rgba(2,6,23,0.75);border-color: rgba(77,208,225,0.06)}
+.project-card:hover{transform:translateY(-8px);box-shadow:0 18px 40px rgba(2,6,23,0.55)}
 
 .project-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
 .project-title{font-size:1.15rem;font-weight:800}
@@ -63,10 +67,12 @@ main{max-width:1280px;margin:0 auto}
 .status.not-started{background:rgba(244,67,54,0.06);color:var(--bad);border:1px solid rgba(244,67,54,0.05)}
 
 .versions{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
-.version-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:12px;color:var(--accent);font-weight:700;cursor:pointer;transition:all .16s}
-.version-btn:hover{background:rgba(77,208,225,0.06);transform:translateY(-3px)}
+.version-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:12px;color:var(--accent);font-weight:700;cursor:pointer;transition:transform .14s ease,background .14s ease}
+.version-btn:hover{background:rgba(77,208,225,0.06);transform:translateY(-2px)}
 .version-btn:active{transform:translateY(0)}
 .version-btn:focus{outline:3px solid rgba(77,208,225,0.14);outline-offset:4px}
+/* Hint to the browser that these elements will animate */
+.version-btn, .project-card{will-change:transform}
 
 .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
 .meta-muted{color:var(--muted);font-size:0.92rem}
