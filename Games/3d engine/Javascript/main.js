@@ -63,22 +63,159 @@ function makeCube(center = [0, 0, 0], s = 1, color = "#000", faceColors = null, 
   };
 }
 
-// Floor grid generation
-const gridSize = 50;
-const gridSpacing = 1.0;
-const floor = { vertices: [], edges: [], strokeStyle: "#888" };
-for (let x = -gridSize / 2; x <= gridSize / 2; x++) {
-  for (let z = -gridSize / 2; z <= gridSize / 2; z++) {
-    floor.vertices.push([x * gridSpacing, 0, z * gridSpacing]);
+
+
+
+
+// --- Perlin noise (2D) ---
+class Perlin {
+  constructor(seed = 0) {
+    this.p = new Uint8Array(512);
+    this.perm = new Uint8Array(512);
+    // simple LCG for reproducible permutation
+    let s = seed >>> 0;
+    for (let i = 0; i < 256; i++) {
+      s = (1664525 * s + 1013904223) >>> 0;
+      this.p[i] = i;
+    }
+    // shuffle
+    for (let i = 255; i > 0; i--) {
+      s = (1664525 * s + 1013904223) >>> 0;
+      const r = s & 255;
+      const tmp = this.p[i];
+      this.p[i] = this.p[r];
+      this.p[r] = tmp;
+    }
+    for (let i = 0; i < 512; i++) this.perm[i] = this.p[i & 255];
+  }
+
+  fade(t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  }
+  lerp(a, b, t) {
+    return a + t * (b - a);
+  }
+  grad(hash, x, y) {
+    const h = hash & 3;
+    const u = h < 2 ? x : y;
+    const v = h < 2 ? y : x;
+    return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+  }
+
+  noise2D(x, y) {
+    const X = Math.floor(x) & 255;
+    const Y = Math.floor(y) & 255;
+    const xf = x - Math.floor(x);
+    const yf = y - Math.floor(y);
+    const u = this.fade(xf);
+    const v = this.fade(yf);
+    const aa = this.perm[this.perm[X] + Y];
+    const ab = this.perm[this.perm[X] + Y + 1];
+    const ba = this.perm[this.perm[X + 1] + Y];
+    const bb = this.perm[this.perm[X + 1] + Y + 1];
+
+    const x1 = this.lerp(this.grad(aa, xf, yf), this.grad(ba, xf - 1, yf), u);
+    const x2 = this.lerp(this.grad(ab, xf, yf - 1), this.grad(bb, xf - 1, yf - 1), u);
+    return this.lerp(x1, x2, v);
+  }
+
+  // octave fBm
+  fbm(x, y, octaves = 4, lacunarity = 2.0, gain = 0.5) {
+    let amp = 1.0;
+    let freq = 1.0;
+    let sum = 0;
+    let max = 0;
+    for (let i = 0; i < octaves; i++) {
+      sum += amp * this.noise2D(x * freq, y * freq);
+      max += amp;
+      amp *= gain;
+      freq *= lacunarity;
+    }
+    return sum / max;
   }
 }
-for (let i = 0; i <= gridSize; i++) {
-  const start = i * (gridSize + 1);
-  for (let j = 0; j < gridSize; j++)
-    floor.edges.push([start + j, start + j + 1]);
-  for (let j = 0; j < gridSize; j++)
-    floor.edges.push([j * (gridSize + 1) + i, (j + 1) * (gridSize + 1) + i]);
+
+// --- Terrain generation ---
+function generateTerrain(options = {}) {
+  const {
+    size = 80, // number of quads per side
+    spacing = 1.0, 
+    heightScale = 8.0,
+    seed = 1337, 
+    octaves = 5,
+    lacunarity = 2.0,
+    gain = 0.5,
+  } = options;
+
+  const perlin = new Perlin(seed);
+  const verts = [];
+  const faces = [];
+  const edges = [];
+
+  const half = size / 2;
+  // generate grid vertices
+  for (let z = 0; z <= size; z++) {
+    for (let x = 0; x <= size; x++) {
+      const worldX = (x - half) * spacing;
+      const worldZ = (z - half) * spacing;
+      // scale coords down to get larger hills
+      const nx = x / size;
+      const nz = z / size;
+      // use fbm for natural terrain
+      const e = perlin.fbm(nx * 4, nz * 4, octaves, lacunarity, gain);
+      const height = e * heightScale;
+      verts.push([worldX, -height, worldZ]);
+    }
+  }
+
+  const rowLen = size + 1;
+  // faces (represented as quads)
+  for (let z = 0; z < size; z++) {
+    for (let x = 0; x < size; x++) {
+      const a = z * rowLen + x;
+      const b = a + 1;
+      const c = a + rowLen + 1;
+      const d = a + rowLen;
+      faces.push([a, b, c, d]);
+    }
+  }
+
+  // edges - build grid lines for wireframe overlay
+  for (let z = 0; z <= size; z++) {
+    for (let x = 0; x <= size; x++) {
+      const idx = z * rowLen + x;
+      if (x < size) edges.push([idx, idx + 1]);
+      if (z < size) edges.push([idx, idx + rowLen]);
+    }
+  }
+
+
+  // per-face coloring based on average height
+  const faceColors = faces.map((face) => {
+    const h = (verts[face[0]][1] + verts[face[1]][1] + verts[face[2]][1] + verts[face[3]][1]) / 4;
+    // positive is down so h is negative
+    const hh = -h;
+    if (hh < heightScale * 0.25) return "#2e8b57"; // low: dark green
+    if (hh < heightScale * 0.5) return "#6b8e23"; // mid: olive
+    if (hh < heightScale * 0.75) return "#c2b280"; // upper: sandy
+    return "#ffffff"; // peaks: white
+  });
+
+  console.log(`Terrain generated, seed: ${seed}, size: ${size}, vertices: ${verts.length}, faces: ${faces.length}`);
+
+  return {
+    vertices: verts,
+    edges,
+    faces,
+    color: "#888",
+    faceColors,
+    strokeStyle: "#333",
+  };
 }
+
+
+
+
 
 //  --- Scene manager ---
 const scene = [];
@@ -98,20 +235,14 @@ function registerScene(objOrFactory) {
   return objOrFactory;
 }
 
-registerScene(floor);
-registerScene(makeCube([0, -1, 0], 1, "red", "red", "red")); 
-console.log(makeCube([0, -1, 0], 1, "red", "red", "red"));
+// generate and register terrain
+const terrain = generateTerrain({ size: 100, spacing: 5, heightScale: 30, seed: Date.now() & 0xffffffff, octaves: 1000 }); // Seed based off current time < 32 bits
+registerScene(terrain);
+console.log(terrain.faces.length)
 
+registerScene(makeCube([0, -1, 0], 1, "red", ["red", "orange"], "red"));
 
-// --- Camera & globals ---
-
-var mouseLocked = false;
-var camera = [0, -2, -5];
-var cameraYaw = 0;
-var cameraPitch = 0;
-
-var totalVertices = 0;
-var loadedVertices = 0;
+// --- Global variables ---
 
 const gameState = {
   gameplay: false,
@@ -127,10 +258,42 @@ let settings = {
     debugInfo: true,
     flying: false,
   },
-  video: {},
+  video: {
+    resolution: "fullscreen",
+  },
   audio: {},
-  controls: {},
+  controls: {
+    mouseSensitivity: 0.005,
+    w: "w",
+    a: "a",
+    s: "s",
+    d: "d",
+    jump: "space",
+    crouch: "shift",
+  },
 };
+
+
+
+// --- Camera ---
+
+var mouseLocked = false;
+var camera = [0, -2, -5];
+var cameraYaw = 0;
+var cameraPitch = 0;
+
+// --- Rendering --- 
+
+var totalVertices = 0;
+var loadedVertices = 0;
+var totalFaces = terrain.faces.length;
+var loadedFaces = 0;
+
+// --- Used for debug info ---
+
+let secondsPassed = 0;
+let oldTimeStamp;
+let fps;
 
 // --- Movement variables ---
 
@@ -139,8 +302,8 @@ var maxSpeed = settings.gameplay.playerSpeed;
 const accel = 50.0;
 const damping = 8.0;
 const gravity = 20.0; // positive pulls down (y axis is flipped fix later)
-// jumpSpeed should be derived at jump time so it follows settings changes
-// (we'll use -settings.gameplay.jumpPower directly when triggering a jump)
+// jumpSpeed is derived at jump time from settings
+
 
 let pointer = { x: 0, y: 0 };
 
@@ -244,16 +407,14 @@ document.addEventListener("pointerlockchange", () => {
 
 if (canvasEl) {
   canvasEl.addEventListener("mousemove", (event) => {
-    const mouseSensitivity = 0.005;
+    const mouseSensitivity = settings.controls.mouseSensitivity || 0.005;
     cameraYaw -= event.movementX * mouseSensitivity;
     cameraPitch -= event.movementY * mouseSensitivity;
     cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
   });
 }
 
-let secondsPassed = 0;
-let oldTimeStamp;
-let fps;
+
 
 function drawDebugInfo(ts) {
   secondsPassed = (ts - oldTimeStamp) / 1003; // set to 60 fps
@@ -385,12 +546,11 @@ class Slider {
 
 let menuButtons = [];
 let settingsButtons = [];
-// sliders for settings UI
 let sliders = [];
 
 // mouse state for sliders
 let mouseDown = false;
-// current settings page/tab
+// current settings tab
 let settingsPage = "gameplay";
 
 canvas.addEventListener("click", (event) => {
@@ -528,6 +688,10 @@ function drawSettings() {
   ctx.textAlign = "center";
   ctx.fillText("Settings", canvas.width / 2, 100);
 
+  // Map options
+  ctx.font = "32px Arial"
+  ctx.fillText("Map settings", canvas.width/ 2, 50*vh)
+
   // top tab buttons
   const tabLabels = ["Gameplay", "Video", "Audio", "Controls"];
   const tabWidth = 160;
@@ -554,7 +718,7 @@ function drawSettings() {
       sliders.push(new Slider(cx, 340, sliderWidth, 2, 20, 0.5, settings.gameplay.jumpPower, "Jump Power"));
     }
       
-    for (const s of sliders) s.draw(ctx);
+    for (const s of sliders) s.draw(ctx); 
   } else if (settingsPage === "audio") {
     ctx.fillText("Audio settings soon", canvas.width / 2, canvas.height / 2);
 
@@ -568,7 +732,7 @@ function drawSettings() {
   const backButton = new Button(canvas.width / 2 - 100, canvas.height - 120, 200, 50, "Back", "#fff");
   const resetButton = new Button(canvas.width / 2 - 330, canvas.height - 120, 140, 50, "Reset", "#fff");
   const toggleDebug = new Button(canvas.width / 2 + 190, canvas.height - 120, 140, 50, `Debug: ${settings.gameplay.debugInfo ? "On" : "Off"}`, "#fff");
-  const flyToggle = new Button(canvas.width / 2 - 20*vw, 420, 200, 50, `Flying: ${settings.gameplay.flying ? "Enabled" : "Disabled"}`, "#fff");
+  const flyToggle = new Button(canvas.width / 2 - 15*vw, 20*vw, 30*vw, 5*vh, `Flying: ${settings.gameplay.flying ? "Enabled" : "Disabled"}`, "#fff");
 
   flyToggle.draw(ctx)
   backButton.draw(ctx);
@@ -626,9 +790,9 @@ function draw(ts) {
     // Movement integration
 
     if (!settings.gameplay.flying) {
-      // walking / grounded movement
-      const forwardInput = (keys["w"] ? 1 : 0) - (keys["s"] ? 1 : 0);
-      const strafeInput = (keys["d"] ? 1 : 0) - (keys["a"] ? 1 : 0);
+      // Grounded movement
+      const forwardInput = (keys[settings.controls.w] ? 1 : 0) - (keys[settings.controls.s] ? 1 : 0);
+      const strafeInput = (keys[settings.controls.d] ? 1 : 0) - (keys[settings.controls.a] ? 1 : 0);
       const fx = Math.sin(cameraYaw),
         fz = Math.cos(cameraYaw);
       const rx = Math.sin(cameraYaw - Math.PI / 2),
@@ -646,10 +810,12 @@ function draw(ts) {
       camera[0] += velocity[0] * dt;
       camera[2] += velocity[2] * dt;
 
-      // Jumping
+      // Jumping and crouching
       const groundY = -2;
-      const jumpPressed = keys["space"];
+      const jumpPressed = keys[settings.controls.jump];
+      const crouchPressed = keys[settings.controls.crouch];
       const isGrounded = camera[1] >= groundY - 0.001;
+     
       if (jumpPressed && isGrounded) {
         velocity[1] = -settings.gameplay.jumpPower;
       }
@@ -665,13 +831,21 @@ function draw(ts) {
         cameraYaw = 360 / (180 / Math.PI);
       }
 
+      // crouch down
+      if (isGrounded && crouchPressed) {
+          camera[1] += 0.5 * dt;
+          if (camera[1] > groundY + 0.5) camera[1] = groundY + 0.5;
+      }
 
 
       // clamp to ground and stop downward velocity
       if (camera[1] > groundY) {
+        if (!crouchPressed) {
         camera[1] = groundY;
         velocity[1] = 0;
+        } 
       }
+
     } else {
 
       maxSpeed = settings.gameplay.playerSpeed * 2;
@@ -695,8 +869,8 @@ function draw(ts) {
       camera[0] += velocity[0] * dt;
       camera[2] += velocity[2] * dt;
 
-      const ascend = keys["space"];
-      const descend = keys["shift"] || keys["shiftleft"] || keys["shiftright"];
+      const ascend = keys[settings.controls.jump];
+      const descend = keys[settings.controls.crouch];
 
       const flyAccel = 30.0;
       const flyDamping = 6.0;
@@ -753,9 +927,8 @@ function draw(ts) {
           // project to screen
           const screenPts = camPoints.map(projectToScreen);
 
-          // simple backface culling using signed area
-          const area = signedArea2D(screenPts);
-          if (area <= 0) continue; // backface
+            const area = signedArea2D(screenPts);
+          if (area >= 0) continue; // backface
 
           // choose color: per-face overrides object color
           const fillColor = (obj.faceColors && obj.faceColors[fi]) || obj.color || obj.strokeStyle || "#000";
@@ -830,3 +1003,4 @@ function draw(ts) {
 }
 
 requestAnimationFrame(draw);
+

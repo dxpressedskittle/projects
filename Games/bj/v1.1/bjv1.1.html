@@ -7,7 +7,7 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom, #004d00, #001a00);
+      background: linear-gradient(to bottom, #0b6d02, #10b310);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -15,7 +15,7 @@
     }
     canvas {
       border: 4px solid #fff;
-      background-color: #006400;
+      background-color: #46a346;
       border-radius: 12px;
       margin-top: 20px;
       box-shadow: 0 0 20px black;
@@ -217,7 +217,7 @@
         alert("Not enough balance.");
         return;
       }
-      currentBet = amount;
+      currentBet += amount;
       playerBalance -= amount;
       if (soundOn) chipSound.play();
       drawHands();
