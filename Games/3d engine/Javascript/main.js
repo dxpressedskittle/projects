@@ -1,3 +1,12 @@
+import {
+  transform,
+  rotateY,
+  rotateX,
+  getTransformedVertices,
+  projectToScreen,
+  signedArea2D,
+} from "./utils.js"; // Rotation helpers and utilites
+
 // --- Canvas setup ---
 const canvasEl = document.getElementById("gameCanvas");
 const canvas = canvasEl || document.createElement("canvas");
@@ -9,16 +18,20 @@ canvas.width = viewPortWidth;
 canvas.height = viewPortHeight;
 const ctx = canvas.getContext ? canvas.getContext("2d") : null;
 
-const fov = Math.min(canvas.width, canvas.height) || 600;
-const canvasOffsetX = canvas.width / 2;
-const canvasOffsetY = canvas.height / 2;
+export const canvasOffsetX = canvas.width / 2;
+export const canvasOffsetY = canvas.height / 2;
 
 // --- Basic scene objects ---
 
-
 // color: default color for all faces
 // faceColors: optional array of 6 colors (one per face)
-function makeCube(center = [0, 0, 0], s = 1, color = "#000", faceColors = null, strokeStyle = "#000") {
+function makeCube(
+  center = [0, 0, 0],
+  s = 1,
+  color = "#000",
+  faceColors = null,
+  strokeStyle = "#000"
+) {
   const [cx, cy, cz] = center;
   const verts = [
     [cx - s, cy - s, cz + s], // 0
@@ -46,12 +59,12 @@ function makeCube(center = [0, 0, 0], s = 1, color = "#000", faceColors = null, 
   ];
   // faces defined as lists of vertex indices (quad faces)
   const faces = [
-    [0, 1, 2, 3], 
-    [5, 4, 7, 6], 
-    [4, 5, 1, 0], 
-    [3, 2, 6, 7], 
-    [1, 5, 6, 2], 
-    [4, 0, 3, 7], 
+    [0, 1, 2, 3],
+    [5, 4, 7, 6],
+    [4, 5, 1, 0],
+    [3, 2, 6, 7],
+    [1, 5, 6, 2],
+    [4, 0, 3, 7],
   ];
   return {
     vertices: verts,
@@ -62,10 +75,6 @@ function makeCube(center = [0, 0, 0], s = 1, color = "#000", faceColors = null, 
     strokeStyle: strokeStyle || "#000",
   };
 }
-
-
-
-
 
 // --- Perlin noise (2D) ---
 class Perlin {
@@ -115,7 +124,11 @@ class Perlin {
     const bb = this.perm[this.perm[X + 1] + Y + 1];
 
     const x1 = this.lerp(this.grad(aa, xf, yf), this.grad(ba, xf - 1, yf), u);
-    const x2 = this.lerp(this.grad(ab, xf, yf - 1), this.grad(bb, xf - 1, yf - 1), u);
+    const x2 = this.lerp(
+      this.grad(ab, xf, yf - 1),
+      this.grad(bb, xf - 1, yf - 1),
+      u
+    );
     return this.lerp(x1, x2, v);
   }
 
@@ -139,9 +152,9 @@ class Perlin {
 function generateTerrain(options = {}) {
   const {
     size = 80, // number of quads per side
-    spacing = 1.0, 
+    spacing = 1.0,
     heightScale = 8.0,
-    seed = 1337, 
+    seed = 1337,
     octaves = 5,
     lacunarity = 2.0,
     gain = 0.5,
@@ -189,10 +202,14 @@ function generateTerrain(options = {}) {
     }
   }
 
-
   // per-face coloring based on average height
   const faceColors = faces.map((face) => {
-    const h = (verts[face[0]][1] + verts[face[1]][1] + verts[face[2]][1] + verts[face[3]][1]) / 4;
+    const h =
+      (verts[face[0]][1] +
+        verts[face[1]][1] +
+        verts[face[2]][1] +
+        verts[face[3]][1]) /
+      4;
     // positive is down so h is negative
     const hh = -h;
     if (hh < heightScale * 0.25) return "#2e8b57"; // low: dark green
@@ -201,7 +218,9 @@ function generateTerrain(options = {}) {
     return "#ffffff"; // peaks: white
   });
 
-  console.log(`Terrain generated, seed: ${seed}, size: ${size}, vertices: ${verts.length}, faces: ${faces.length}`);
+  console.log(
+    `Terrain generated, seed: ${seed}, size: ${size}, vertices: ${verts.length}, faces: ${faces.length}`
+  );
 
   return {
     vertices: verts,
@@ -212,10 +231,6 @@ function generateTerrain(options = {}) {
     strokeStyle: "#333",
   };
 }
-
-
-
-
 
 //  --- Scene manager ---
 const scene = [];
@@ -236,9 +251,15 @@ function registerScene(objOrFactory) {
 }
 
 // generate and register terrain
-const terrain = generateTerrain({ size: 100, spacing: 5, heightScale: 30, seed: Date.now() & 0xffffffff, octaves: 1000 }); // Seed based off current time < 32 bits
+const terrain = generateTerrain({
+  size: 100,
+  spacing: 5,
+  heightScale: 30,
+  seed: Date.now() & 0xffffffff,
+  octaves: 1000,
+}); // Seed based off current time < 32 bits
 registerScene(terrain);
-console.log(terrain.faces.length)
+console.log(terrain.faces.length);
 
 registerScene(makeCube([0, -1, 0], 1, "red", ["red", "orange"], "red"));
 
@@ -273,16 +294,14 @@ let settings = {
   },
 };
 
-
-
 // --- Camera ---
-
+export const fov = Math.min(canvas.width, canvas.height) || 600;
 var mouseLocked = false;
-var camera = [0, -2, -5];
-var cameraYaw = 0;
-var cameraPitch = 0;
+export var camera = [0, -2, -5];
+export var cameraYaw = 0;
+export var cameraPitch = 0;
 
-// --- Rendering --- 
+// --- Rendering ---
 
 var totalVertices = 0;
 var loadedVertices = 0;
@@ -304,7 +323,6 @@ const damping = 8.0;
 const gravity = 20.0; // positive pulls down (y axis is flipped fix later)
 // jumpSpeed is derived at jump time from settings
 
-
 let pointer = { x: 0, y: 0 };
 
 function onPointerMove(event) {
@@ -312,63 +330,6 @@ function onPointerMove(event) {
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 window.addEventListener("mousemove", onPointerMove);
-
-// 3D to 2D projection
-
-function transform(v) {
-  const z = v[2];
-  const safeZ = z <= 0.001 ? 0.001 : z;
-  const f = fov / safeZ;
-  return [v[0] * f, v[1] * f];
-}
-
-// Rotation helpers
-function rotateY(v, angle) {
-  return [
-    v[0] * Math.cos(angle) - v[2] * Math.sin(angle),
-    v[1],
-    v[0] * Math.sin(angle) + v[2] * Math.cos(angle),
-  ];
-}
-function rotateX(v, angle) {
-  return [
-    v[0],
-    v[1] * Math.cos(angle) - v[2] * Math.sin(angle),
-    v[1] * Math.sin(angle) + v[2] * Math.cos(angle),
-  ];
-}
-
-// Transform object vertices into camera space
-function getTransformedVertices(obj) {
-  const out = [];
-  for (let i = 0; i < obj.vertices.length; i++) {
-    let v = [...obj.vertices[i]];
-    v[0] -= camera[0];
-    v[1] -= camera[1];
-    v[2] -= camera[2];
-    v = rotateY(v, -cameraYaw);
-    v = rotateX(v, -cameraPitch);
-    out[i] = v;
-  }
-  return out;
-}
-
-// Project a camera-space vertex to screen-space (returns [x, y])
-function projectToScreen(v) {
-  const p = transform(v);
-  return [p[0] + canvasOffsetX, p[1] + canvasOffsetY];
-}
-
-// Gets signed area of 2D polygon (screen-space)
-function signedArea2D(points) {
-  let area = 0;
-  for (let i = 0; i < points.length; i++) {
-    const a = points[i];
-    const b = points[(i + 1) % points.length];
-    area += a[0] * b[1] - b[0] * a[1];
-  }
-  return area / 2;
-}
 
 //  Smooth movement state
 const keys = {};
@@ -378,11 +339,12 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "Space") keys["space"] = true;
   if (e.key === "Escape") {
     if (gameState.gameplay) {
-    document.exitPointerLock();
+      document.exitPointerLock();
     } else if (gameState.menu) {
       gameState.gameplay = true;
       gameState.menu = false;
-  }}
+    }
+  }
 });
 document.addEventListener("keyup", (e) => {
   const k = e.key ? e.key.toLowerCase() : "";
@@ -413,8 +375,6 @@ if (canvasEl) {
     cameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraPitch));
   });
 }
-
-
 
 function drawDebugInfo(ts) {
   secondsPassed = (ts - oldTimeStamp) / 1003; // set to 60 fps
@@ -539,7 +499,9 @@ class Slider {
   setFromX(mx) {
     const t = (mx - this.x) / this.width;
     const clamped = Math.max(0, Math.min(1, t));
-    const stepped = Math.round((this.min + clamped * (this.max - this.min)) / this.step) * this.step;
+    const stepped =
+      Math.round((this.min + clamped * (this.max - this.min)) / this.step) *
+      this.step;
     this.value = Math.max(this.min, Math.min(this.max, stepped));
   }
 }
@@ -562,7 +524,7 @@ canvas.addEventListener("click", (event) => {
     for (const b of menuButtons) {
       if (b && b.isClicked(mouseX, mouseY) && typeof b.onClick === "function") {
         b.onClick();
-        break; 
+        break;
       }
     }
   } else if (gameState.settings) {
@@ -689,8 +651,8 @@ function drawSettings() {
   ctx.fillText("Settings", canvas.width / 2, 100);
 
   // Map options
-  ctx.font = "32px Arial"
-  ctx.fillText("Map settings", canvas.width/ 2, 50*vh)
+  ctx.font = "32px Arial";
+  ctx.fillText("Map settings", canvas.width / 2, 50 * vh);
 
   // top tab buttons
   const tabLabels = ["Gameplay", "Video", "Audio", "Controls"];
@@ -700,7 +662,16 @@ function drawSettings() {
   const tabButtons = [];
   for (let i = 0; i < tabLabels.length; i++) {
     const x = tabStartX + i * tabWidth;
-    const b = new Button(x, tabY, tabWidth - 10, 36, tabLabels[i], settingsPage.toLowerCase() === tabLabels[i].toLowerCase() ? "#666" : "#ddd");
+    const b = new Button(
+      x,
+      tabY,
+      tabWidth - 10,
+      36,
+      tabLabels[i],
+      settingsPage.toLowerCase() === tabLabels[i].toLowerCase()
+        ? "#666"
+        : "#ddd"
+    );
     b.onClick = () => {
       settingsPage = tabLabels[i].toLowerCase();
       sliders = [];
@@ -714,14 +685,35 @@ function drawSettings() {
       const sliderWidth = Math.min(600, canvas.width * 0.6);
       const cx = canvas.width / 2 - sliderWidth / 2;
 
-      sliders.push(new Slider(cx, 260, sliderWidth, 2, 30, 0.5, settings.gameplay.playerSpeed, "Player Speed"));
-      sliders.push(new Slider(cx, 340, sliderWidth, 2, 20, 0.5, settings.gameplay.jumpPower, "Jump Power"));
+      sliders.push(
+        new Slider(
+          cx,
+          260,
+          sliderWidth,
+          2,
+          30,
+          0.5,
+          settings.gameplay.playerSpeed,
+          "Player Speed"
+        )
+      );
+      sliders.push(
+        new Slider(
+          cx,
+          340,
+          sliderWidth,
+          2,
+          20,
+          0.5,
+          settings.gameplay.jumpPower,
+          "Jump Power"
+        )
+      );
     }
-      
-    for (const s of sliders) s.draw(ctx); 
+
+    for (const s of sliders) s.draw(ctx);
   } else if (settingsPage === "audio") {
     ctx.fillText("Audio settings soon", canvas.width / 2, canvas.height / 2);
-
   } else if (settingsPage === "video") {
     ctx.fillText("Video settings soon", canvas.width / 2, canvas.height / 2);
   } else if (settingsPage === "controls") {
@@ -729,17 +721,51 @@ function drawSettings() {
   }
 
   // buttons
-  const backButton = new Button(canvas.width / 2 - 100, canvas.height - 120, 200, 50, "Back", "#fff");
-  const resetButton = new Button(canvas.width / 2 - 330, canvas.height - 120, 140, 50, "Reset", "#fff");
-  const toggleDebug = new Button(canvas.width / 2 + 190, canvas.height - 120, 140, 50, `Debug: ${settings.gameplay.debugInfo ? "On" : "Off"}`, "#fff");
-  const flyToggle = new Button(canvas.width / 2 - 15*vw, 20*vw, 30*vw, 5*vh, `Flying: ${settings.gameplay.flying ? "Enabled" : "Disabled"}`, "#fff");
+  const backButton = new Button(
+    canvas.width / 2 - 100,
+    canvas.height - 120,
+    200,
+    50,
+    "Back",
+    "#fff"
+  );
+  const resetButton = new Button(
+    canvas.width / 2 - 330,
+    canvas.height - 120,
+    140,
+    50,
+    "Reset",
+    "#fff"
+  );
+  const toggleDebug = new Button(
+    canvas.width / 2 + 190,
+    canvas.height - 120,
+    140,
+    50,
+    `Debug: ${settings.gameplay.debugInfo ? "On" : "Off"}`,
+    "#fff"
+  );
+  const flyToggle = new Button(
+    canvas.width / 2 - 15 * vw,
+    20 * vw,
+    30 * vw,
+    5 * vh,
+    `Flying: ${settings.gameplay.flying ? "Enabled" : "Disabled"}`,
+    "#fff"
+  );
 
-  flyToggle.draw(ctx)
+  flyToggle.draw(ctx);
   backButton.draw(ctx);
   resetButton.draw(ctx);
   toggleDebug.draw(ctx);
 
-  settingsButtons = [backButton, resetButton, toggleDebug, flyToggle, ...tabButtons];
+  settingsButtons = [
+    backButton,
+    resetButton,
+    toggleDebug,
+    flyToggle,
+    ...tabButtons,
+  ];
 
   backButton.onClick = () => {
     gameState.settings = false;
@@ -760,7 +786,7 @@ function drawSettings() {
   flyToggle.onClick = () => {
     settings.gameplay.flying = !settings.gameplay.flying;
     camera[1] = -2;
-  }
+  };
 }
 
 //  --- Main draw loop ---
@@ -791,8 +817,12 @@ function draw(ts) {
 
     if (!settings.gameplay.flying) {
       // Grounded movement
-      const forwardInput = (keys[settings.controls.w] ? 1 : 0) - (keys[settings.controls.s] ? 1 : 0);
-      const strafeInput = (keys[settings.controls.d] ? 1 : 0) - (keys[settings.controls.a] ? 1 : 0);
+      const forwardInput =
+        (keys[settings.controls.w] ? 1 : 0) -
+        (keys[settings.controls.s] ? 1 : 0);
+      const strafeInput =
+        (keys[settings.controls.d] ? 1 : 0) -
+        (keys[settings.controls.a] ? 1 : 0);
       const fx = Math.sin(cameraYaw),
         fz = Math.cos(cameraYaw);
       const rx = Math.sin(cameraYaw - Math.PI / 2),
@@ -815,7 +845,7 @@ function draw(ts) {
       const jumpPressed = keys[settings.controls.jump];
       const crouchPressed = keys[settings.controls.crouch];
       const isGrounded = camera[1] >= groundY - 0.001;
-     
+
       if (jumpPressed && isGrounded) {
         velocity[1] = -settings.gameplay.jumpPower;
       }
@@ -833,21 +863,18 @@ function draw(ts) {
 
       // crouch down
       if (isGrounded && crouchPressed) {
-          camera[1] += 0.5 * dt;
-          if (camera[1] > groundY + 0.5) camera[1] = groundY + 0.5;
+        camera[1] += 0.5 * dt;
+        if (camera[1] > groundY + 0.5) camera[1] = groundY + 0.5;
       }
-
 
       // clamp to ground and stop downward velocity
       if (camera[1] > groundY) {
         if (!crouchPressed) {
-        camera[1] = groundY;
-        velocity[1] = 0;
-        } 
+          camera[1] = groundY;
+          velocity[1] = 0;
+        }
       }
-
     } else {
-
       maxSpeed = settings.gameplay.playerSpeed * 2;
 
       const forwardInput = (keys["w"] ? 1 : 0) - (keys["s"] ? 1 : 0);
@@ -927,16 +954,21 @@ function draw(ts) {
           // project to screen
           const screenPts = camPoints.map(projectToScreen);
 
-            const area = signedArea2D(screenPts);
+          const area = signedArea2D(screenPts);
           if (area >= 0) continue; // backface
 
           // choose color: per-face overrides object color
-          const fillColor = (obj.faceColors && obj.faceColors[fi]) || obj.color || obj.strokeStyle || "#000";
+          const fillColor =
+            (obj.faceColors && obj.faceColors[fi]) ||
+            obj.color ||
+            obj.strokeStyle ||
+            "#000";
 
           // draw filled polygon
           ctx.beginPath();
           ctx.moveTo(screenPts[0][0], screenPts[0][1]);
-          for (let p = 1; p < screenPts.length; p++) ctx.lineTo(screenPts[p][0], screenPts[p][1]);
+          for (let p = 1; p < screenPts.length; p++)
+            ctx.lineTo(screenPts[p][0], screenPts[p][1]);
           ctx.closePath();
           ctx.fillStyle = fillColor;
           ctx.fill();
@@ -1003,4 +1035,3 @@ function draw(ts) {
 }
 
 requestAnimationFrame(draw);
-
