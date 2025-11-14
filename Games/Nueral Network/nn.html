@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="nn.css">
+</head>
+<body>
+    <div class="title">
+        <h1>Pattern recognition</h1>
+        <p>This is a simple neural network that recognizes patterns.</p>
+    </div>
+    <div class="container">
+        <p>Enter a pattern of 1's and 0's, then click train to start the nueral network.</p>
+        <p>Example of a pattern <br> <br> <br>
+           training-inputs: (0, 1, 0), (1, 0, 0), (0, 0, 1), <br>
+           training-outputs (0), (0), (1)<br>
+           True = 1, False = 0<br>
+        </p>
+        <div class="buttons">
+            <button id="train-btn">Train</button>
+            <button id="test-btn">Test</button>
+        </div>
+
+        <div class="patterns">
+        <textarea id="input-pattern" rows = 6 cols = 10>0,1,0
+            1,0,0
+            0,0,1
+                    </textarea>
+        <textarea id="output-pattern" rows = 6 cols = 5>0,
+            0,
+            1
+        </textarea>
+        <p>Input pattern | Output pattern</p> 
+    </div>
+    </div>
+
+    <div class="status">
+        <h3>Network</h3>
+        <div id="weights-display" style="white-space:pre-wrap; font-family:monospace; background:#f7f7f7; padding:8px; border:1px solid #ddd;"></div>
+    </div>
+
+    
+    
+
+
+
+
+    
+    
+
+        <script src="nn.js"></script>
+</body>
+</html>

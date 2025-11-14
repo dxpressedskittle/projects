@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     newWord = "";
   }
 
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 10000000; i++) {
     createWord();
   }
 

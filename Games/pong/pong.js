@@ -54,18 +54,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function getRandomDirectionWithSpeed(minSpeed, maxSpeed) {
-    // generates a random angle in radians / 0-2 * PI
-    const angle = Math.random() * 2 * Math.PI;
-
-    // Generate random speed within the specified range
-    const speed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
-
-    // Calculate x and y components of the direction vector
-    const dx = Math.cos(angle) * speed;
-    const dy = Math.sin(angle) * speed;
-    return { dx, dy, speed };
-  }
+  
 
   const ball = document.getElementById("ball");
   const box = document.getElementById("box");

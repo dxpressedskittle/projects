@@ -70,7 +70,7 @@ class Perlin {
 }
 
 // --- Terrain generation ---
-function generateTerrain(options = {}) {
+export function generateTerrain(options = {}) {
   const {
     size = 80, // number of quads per side
     spacing = 1.0,
@@ -140,7 +140,7 @@ function generateTerrain(options = {}) {
   });
 
   console.log(
-    `Terrain generated, seed: ${seed}, size: ${size}, vertices: ${verts.length}, faces: ${faces.length}`
+    `Terrain generated, seed: ${seed}, size: ${size}, vertices: ${verts.length}, faces: ${faces.length}, seed ${new Perlin(seed).noise2D(0, 0)}`
   );
 
   return {
@@ -153,11 +153,3 @@ function generateTerrain(options = {}) {
   };
 }
 
-// generate terrain
-export const terrain = generateTerrain({
-  size: 100,
-  spacing: 5,
-  heightScale: 30,
-  seed: Date.now() & 0xffffffff,
-  octaves: 1000,
-}); // Seed based off current time < 32 bits

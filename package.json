@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "konva": "^10.0.2",
+    "mathjs": "^15.1.0",
+    "numjs": "^0.16.1",
     "three.js": "^0.77.0"
   }
 }

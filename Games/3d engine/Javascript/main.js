@@ -6,7 +6,8 @@ import {
   projectToScreen,
   signedArea2D,
 } from "./utils.js"; // Rotation helpers and utilites
-import {terrain} from "./terrainGen.js"
+import { generateTerrain } from "./terrainGen.js";
+import {depthBuffer} from "./depthBuffer.js";
 
 // --- Canvas setup ---
 const canvasEl = document.getElementById("gameCanvas");
@@ -77,8 +78,6 @@ function makeCube(
   };
 }
 
-
-
 //  --- Scene manager ---
 const scene = [];
 function isRenderable(obj) {
@@ -97,9 +96,33 @@ function registerScene(objOrFactory) {
   return objOrFactory;
 }
 
+const terrain = generateTerrain({
+  size: 100,
+  spacing: 5,
+  heightScale: 30,
+  seed: Date.now() & 0xffffffff,
+  octaves: 1000,
+}); // Seed based off current time < 32 bits
 
-registerScene(terrain);
-registerScene(makeCube([0, -1, 0], 1, "red", ["red", "orange"], "red")); // register scene objects
+// register basic scene objects
+
+const triangle = {
+  vertices: [
+    [0, 1, 5],
+    [-1, -1, 5],
+    [1, -1, 5],
+  ],
+  edges: [[0, 1], [1, 2], [2, 0]],
+  faces: [[0, 1, 2]],
+  color: "blue",
+  strokeStyle: "black",
+};
+
+
+registerScene(terrain)
+registerScene(makeCube([0, -1, 0], 1, "red", ["red", "orange"], "red")); 
+
+
 
 // --- Global variables ---
 
@@ -143,8 +166,7 @@ export var cameraPitch = 0;
 
 var totalVertices = 0;
 var loadedVertices = 0;
-var totalFaces = terrain.faces.length;
-var loadedFaces = 0;
+
 
 // --- Used for debug info ---
 
@@ -215,7 +237,7 @@ if (canvasEl) {
 }
 
 function drawDebugInfo(ts) {
-  secondsPassed = (ts - oldTimeStamp) / 1003; // set to 60 fps
+  secondsPassed = (ts - oldTimeStamp) / 1000; 
   oldTimeStamp = ts;
   fps = Math.round(1 / secondsPassed);
 
@@ -381,7 +403,6 @@ canvas.addEventListener("click", (event) => {
         // apply to settings immediately
         if (s.label === "Player Speed") settings.gameplay.playerSpeed = s.value;
         if (s.label === "Jump Power") settings.gameplay.jumpPower = s.value;
-        if (s.label === "Master Volume") settings.audio.masterVolume = s.value;
         break;
       }
     }
@@ -403,6 +424,8 @@ canvas.addEventListener("mousedown", (e) => {
     }
   }
 });
+
+// Listener events for sliders.
 
 window.addEventListener("mousemove", (e) => {
   if (!mouseDown) return;
@@ -488,12 +511,8 @@ function drawSettings() {
   ctx.textAlign = "center";
   ctx.fillText("Settings", canvas.width / 2, 100);
 
-  // Map options
-  ctx.font = "32px Arial";
-  ctx.fillText("Map settings", canvas.width / 2, 50 * vh);
-
   // top tab buttons
-  const tabLabels = ["Gameplay", "Video", "Audio", "Controls"];
+  const tabLabels = ["Gameplay", "Video", "Audio", "Controls", "Map Settings"];
   const tabWidth = 160;
   const tabStartX = canvas.width / 2 - (tabLabels.length * tabWidth) / 2;
   const tabY = 140;
@@ -518,47 +537,7 @@ function drawSettings() {
     b.draw(ctx);
   }
 
-  if (settingsPage === "gameplay") {
-    if (sliders.length === 0) {
-      const sliderWidth = Math.min(600, canvas.width * 0.6);
-      const cx = canvas.width / 2 - sliderWidth / 2;
-
-      sliders.push(
-        new Slider(
-          cx,
-          260,
-          sliderWidth,
-          2,
-          30,
-          0.5,
-          settings.gameplay.playerSpeed,
-          "Player Speed"
-        )
-      );
-      sliders.push(
-        new Slider(
-          cx,
-          340,
-          sliderWidth,
-          2,
-          20,
-          0.5,
-          settings.gameplay.jumpPower,
-          "Jump Power"
-        )
-      );
-    }
-
-    for (const s of sliders) s.draw(ctx);
-  } else if (settingsPage === "audio") {
-    ctx.fillText("Audio settings soon", canvas.width / 2, canvas.height / 2);
-  } else if (settingsPage === "video") {
-    ctx.fillText("Video settings soon", canvas.width / 2, canvas.height / 2);
-  } else if (settingsPage === "controls") {
-    ctx.fillText("Controls settings soon", canvas.width / 2, canvas.height / 2);
-  }
-
-  // buttons
+  // Initalize buttons
   const backButton = new Button(
     canvas.width / 2 - 100,
     canvas.height - 120,
@@ -575,6 +554,8 @@ function drawSettings() {
     "Reset",
     "#fff"
   );
+
+  // Gameplay buttons
   const toggleDebug = new Button(
     canvas.width / 2 + 190,
     canvas.height - 120,
@@ -585,14 +566,77 @@ function drawSettings() {
   );
   const flyToggle = new Button(
     canvas.width / 2 - 15 * vw,
-    20 * vw,
+    38 * vw,
     30 * vw,
     5 * vh,
     `Flying: ${settings.gameplay.flying ? "Enabled" : "Disabled"}`,
     "#fff"
   );
 
-  flyToggle.draw(ctx);
+  // Map buttons
+  const regenerateTerrain = new Button(
+    canvas.width / 2 - 7.5 * vw,
+    55 * vw,
+    15 * vw,
+    5 * vh,
+    "Regenerate Terrain",
+    "#fff"
+  );
+
+  // Initalize sliders
+
+  const sliderWidth = Math.min(600, canvas.width * 0.6);
+  const cx = canvas.width / 2 - sliderWidth / 2;
+
+  const playerSpeedSlider = new Slider(
+    cx,
+    210,
+    sliderWidth,
+    2,
+    30,
+    0.5,
+    settings.gameplay.playerSpeed,
+    "Player Speed"
+  );
+  const playerJumpSpeedSlider = new Slider(
+    cx,
+    250,
+    sliderWidth,
+    2,
+    20,
+    0.5,
+    settings.gameplay.jumpPower,
+    "Jump Power"
+  );
+  const mapSmoothnessSlider = new Slider(
+    cx,
+    250,
+    sliderWidth,
+    1,
+    1000,
+    0.5,
+    settings.gameplay.jumpPower,
+    "Map Smoothness"
+  );
+
+  if (settingsPage === "gameplay") {
+    sliders.length = 0;
+    sliders.push(playerJumpSpeedSlider, playerSpeedSlider);
+    for (const s of sliders) s.draw(ctx);
+    flyToggle.draw(ctx);
+  } else if (settingsPage === "audio") {
+    ctx.fillText("Audio settings soon", canvas.width / 2, canvas.height / 2);
+  } else if (settingsPage === "video") {
+    ctx.fillText("Video settings soon", canvas.width / 2, canvas.height / 2);
+  } else if (settingsPage === "controls") {
+    ctx.fillText("Controls settings soon", canvas.width / 2, canvas.height / 2);
+  } else if (settingsPage === "map settings") {
+    sliders.push(mapSmoothnessSlider);
+    for (const s of sliders) s.draw(ctx);
+    regenerateTerrain.draw(ctx);
+    ctx.fillText("Map settings soon", canvas.width / 2, canvas.height / 2);
+  }
+
   backButton.draw(ctx);
   resetButton.draw(ctx);
   toggleDebug.draw(ctx);
@@ -692,7 +736,7 @@ function draw(ts) {
       velocity[1] += gravity * dt;
       camera[1] += velocity[1] * dt;
 
-      // Make sure 0 <= Yaw <= 360
+      // Make sure Yaw stays between 360 and 0
       if (cameraYaw * (180 / Math.PI) > 360) {
         cameraYaw = 0;
       } else if (cameraYaw * (180 / Math.PI) < 0) {
