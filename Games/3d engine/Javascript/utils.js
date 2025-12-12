@@ -8,7 +8,6 @@ export function transform(v) {
   const f = fov / safeZ;
   return [v[0] * f, v[1] * f];
 }
-console.log(camera)
 
 // Rotation helpers
 export function rotateY(v, angle) {
@@ -56,5 +55,59 @@ export function signedArea2D(points) {
     area += a[0] * b[1] - b[0] * a[1];
   }
   return area / 2;
+}
+
+
+// color: default color for all faces
+// faceColors: optional array of 6 colors (one per face)
+export function makeCube(
+  center = [0, 0, 0],
+  s = 1,
+  color = "#000",
+  faceColors = null,
+  strokeStyle = "#000"
+) {
+  const [cx, cy, cz] = center;
+  const verts = [
+    [cx - s, cy - s, cz + s], // 0
+    [cx + s, cy - s, cz + s], // 1
+    [cx + s, cy + s, cz + s], // 2
+    [cx - s, cy + s, cz + s], // 3
+    [cx - s, cy - s, cz - s], // 4
+    [cx + s, cy - s, cz - s], // 5
+    [cx + s, cy + s, cz - s], // 6
+    [cx - s, cy + s, cz - s], // 7
+  ];
+  const edges = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 0],
+    [4, 5],
+    [5, 6],
+    [6, 7],
+    [7, 4],
+    [0, 4],
+    [1, 5],
+    [2, 6],
+    [3, 7],
+  ];
+  // faces defined as lists of vertex indices (quad faces)
+  const faces = [
+    [0, 1, 2, 3],
+    [5, 4, 7, 6],
+    [4, 5, 1, 0],
+    [3, 2, 6, 7],
+    [1, 5, 6, 2],
+    [4, 0, 3, 7],
+  ];
+  return {
+    vertices: verts,
+    edges,
+    faces,
+    color,
+    faceColors: Array.isArray(faceColors) ? faceColors : null,
+    strokeStyle: strokeStyle || "#000",
+  };
 }
 

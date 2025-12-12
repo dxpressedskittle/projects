@@ -14,7 +14,7 @@
     }
   },
   "postCreateCommand": "npm install",
-  "forwardPorts": [8081],
+  "forwardPorts": [8080],
   "portsAttributes": {
     "8081": {
       "label": "Web Preview",

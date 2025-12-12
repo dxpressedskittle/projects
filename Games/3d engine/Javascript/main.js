@@ -5,9 +5,17 @@ import {
   getTransformedVertices,
   projectToScreen,
   signedArea2D,
+  makeCube
 } from "./utils.js"; // Rotation helpers and utilites
+
+// Procedural generation and voxel generation
+
 import { generateTerrain } from "./terrainGen.js";
+import {voxelTerrain} from "./terrainGen.js";
+
+
 import {depthBuffer} from "./depthBuffer.js";
+
 
 // --- Canvas setup ---
 const canvasEl = document.getElementById("gameCanvas");
@@ -25,58 +33,7 @@ export const canvasOffsetY = canvas.height / 2;
 
 // --- Basic scene objects ---
 
-// color: default color for all faces
-// faceColors: optional array of 6 colors (one per face)
-function makeCube(
-  center = [0, 0, 0],
-  s = 1,
-  color = "#000",
-  faceColors = null,
-  strokeStyle = "#000"
-) {
-  const [cx, cy, cz] = center;
-  const verts = [
-    [cx - s, cy - s, cz + s], // 0
-    [cx + s, cy - s, cz + s], // 1
-    [cx + s, cy + s, cz + s], // 2
-    [cx - s, cy + s, cz + s], // 3
-    [cx - s, cy - s, cz - s], // 4
-    [cx + s, cy - s, cz - s], // 5
-    [cx + s, cy + s, cz - s], // 6
-    [cx - s, cy + s, cz - s], // 7
-  ];
-  const edges = [
-    [0, 1],
-    [1, 2],
-    [2, 3],
-    [3, 0],
-    [4, 5],
-    [5, 6],
-    [6, 7],
-    [7, 4],
-    [0, 4],
-    [1, 5],
-    [2, 6],
-    [3, 7],
-  ];
-  // faces defined as lists of vertex indices (quad faces)
-  const faces = [
-    [0, 1, 2, 3],
-    [5, 4, 7, 6],
-    [4, 5, 1, 0],
-    [3, 2, 6, 7],
-    [1, 5, 6, 2],
-    [4, 0, 3, 7],
-  ];
-  return {
-    vertices: verts,
-    edges,
-    faces,
-    color,
-    faceColors: Array.isArray(faceColors) ? faceColors : null,
-    strokeStyle: strokeStyle || "#000",
-  };
-}
+
 
 //  --- Scene manager ---
 const scene = [];
@@ -96,32 +53,38 @@ function registerScene(objOrFactory) {
   return objOrFactory;
 }
 
-const terrain = generateTerrain({
-  size: 100,
-  spacing: 5,
-  heightScale: 30,
-  seed: Date.now() & 0xffffffff,
-  octaves: 1000,
-}); // Seed based off current time < 32 bits
+console.log(voxelTerrain)
+for (let i=0; i<voxelTerrain; i++) {
+  console.log(voxelTerrain[i])
+}
+
+
+//const terrain = generateTerrain({
+  //size: 100,
+  //spacing: 5,
+  //heightScale: 30,
+  //seed: Date.now() & 0xffffffff,
+  //octaves: 1000,
+//}); // Seed based off current time < 32 bits
 
 // register basic scene objects
 
 const triangle = {
   vertices: [
-    [0, 1, 5],
-    [-1, -1, 5],
-    [1, -1, 5],
+    [0, 0, 6],
+    [-1, 0, 5],
+    [1, 0, 5],
+    [0,-1,5.5]
   ],
-  edges: [[0, 1], [1, 2], [2, 0]],
-  faces: [[0, 1, 2]],
-  color: "blue",
+  edges: [[0, 1], [1, 2], [2, 0], [0,3], [1,3], [2,3]], 
+  faces: [[1,3,0], [1,3,2], [2,3,0]], 
+  color: "red",
   strokeStyle: "black",
 };
 
-
-registerScene(terrain)
+registerScene(triangle)
 registerScene(makeCube([0, -1, 0], 1, "red", ["red", "orange"], "red")); 
-
+//registerScene(terrain)
 
 
 // --- Global variables ---

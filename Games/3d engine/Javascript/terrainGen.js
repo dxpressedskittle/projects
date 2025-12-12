@@ -68,6 +68,86 @@ class Perlin {
     return sum / max;
   }
 }
+function generateUniqeSeed() {
+  return Math.floor(Math.random * 125213534532)
+}
+
+
+
+
+// Note: This rewrite assumes the Perlin class is available in scope.
+
+function generateVoxelTerrain(options = {}) {
+  const {
+    size = 80, // extent of the world in x/z directions (cubes)
+    heightScale = 20, // max possible height of the terrain (cubes)
+    seed = 1337,
+    octaves = 5,
+    lacunarity = 2.0,
+    gain = 0.5,
+    // New option for minimum terrain level
+    minHeight = 0, 
+  } = options;
+
+  const perlin = new Perlin(seed);
+  const voxels = []; 
+
+  const halfSize = size / 2;
+
+  // Iterate over every possible cube coordinate in our 3D space
+  for (let x = 0; x < size; x++) {
+    for (let z = 0; z < size; z++) {
+      
+      // Calculate the noise input coordinates (normalized and scaled for 'zoom')
+      // We scale by a factor (e.g., 0.05 or 4/size depending on desired terrain scale)
+      const noiseX = x * 0.05; 
+      const noiseZ = z * 0.05; 
+
+      // Use fBm to get the base terrain height
+      // The fbm function returns a value usually between -1 and 1
+      const rawHeightNoise = perlin.fbm(
+        noiseX, 
+        noiseZ, 
+        octaves, 
+        lacunarity, 
+        gain
+      );
+
+      // Normalize the noise from [-1, 1] range to [0, 1] range
+      const normalizedHeight = (rawHeightNoise + 1) / 2;
+
+      // Scale the normalized height to the desired max integer height 
+      const terrainHeight = Math.floor(normalizedHeight * heightScale);
+
+      // Place solid cubes from the bottom up to the calculated terrain height
+      for (let y = minHeight; y < terrainHeight; y++) {
+        // Adjust x and z coordinates to center the terrain around the world origin 
+        const worldX = x - halfSize;
+        const worldZ = z - halfSize;
+        
+        voxels.push([worldX, y, worldZ]);
+      }
+    }
+  }
+
+  console.log(
+    `Voxel Terrain generated, seed: ${seed}, size: ${size}, cubes generated: ${voxels.length}`
+  );
+
+  return {
+    voxels: voxels,
+  };
+}
+
+export const voxelTerrain = generateVoxelTerrain({
+  size: 100,
+  spacing: 5,
+  heightScale: 10,
+  minHeight: 0,
+  seed: generateUniqeSeed(),
+  octaves: 1000,
+})
+
 
 // --- Terrain generation ---
 export function generateTerrain(options = {}) {
