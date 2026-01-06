@@ -1,3 +1,4 @@
+
 const canvas = document.getElementById("canvas");
 const viewPortWidth = document.documentElement.clientWidth;
 const viewPortHeight = document.documentElement.clientHeight;
@@ -7,8 +8,15 @@ const ctx = canvas.getContext("2d");
 canvas.width = viewPortWidth;
 canvas.height = viewPortHeight;
 
-const unsortedList = generateList(1,100,100);
+const listLength = 100;
+const listMin = 1;
+const listMax = 100;
+
+
+const unsortedList = generateList(listMin, listMax, listLength);
 const scaledList = [];
+
+const functionTime = timeFunctionExecution(bubbleSort, unsortedList);
 
 const blockMargin = 0.5 * vw;
 const yOffset = 5 * vh;
@@ -16,9 +24,46 @@ const maxBlockHeight = 143;
 const blockWidth = (60 * vw) / unsortedList.length;
 const blockFontSize = blockWidth / 2
 
-let delayMS = 100 
+let delayMS = 1 
 let swapCount = 0
 let stepCount = 0;
+
+
+class Button {
+  constructor(x, y, width, height, label, color) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.label = label;
+    this.color = color;
+  }
+
+  draw(context) {
+    context.fillStyle = this.color;
+    context.fillRect(this.x, this.y, this.width, this.height);
+
+    context.fillStyle = "#000000";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.font = "18px Arial";
+    context.fillText(
+      this.label,
+      this.x + this.width / 2,
+      this.y + this.height / 2
+    );
+  }
+
+  // Method to check if a point is inside the button
+  isClicked(mouseX, mouseY) {
+    return (
+      mouseX >= this.x &&
+      mouseX <= this.x + this.width &&
+      mouseY >= this.y &&
+      mouseY <= this.y + this.height
+    );
+  }
+}
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -51,12 +96,74 @@ async function bubbleSort(list, delayMS = 100) {
         unsortedList[j + 1] = tempLabel;
         swapCount++;
 
-        drawBlocks(list);
+        drawBlocks(scaledList);
         await delay(delayMS);
       }
     }
   }
 }
+
+async function quickSort(list, start = 0, end = list.length - 1, delayMS = 100) {
+  if (start >= end) return;
+
+
+  let index = await partition(list, start, end, delayMS);
+
+
+  await quickSort(list, start, index - 1, delayMS);
+  await quickSort(list, index + 1, end, delayMS);
+}
+
+async function partition(list, start, end, delayMS) {
+  const pivotValue = list[end];
+  let pivotIndex = start;
+
+  for (let i = start; i < end; i++) {
+    if (list[i] < pivotValue) {
+      // Swap elements
+      [list[i], list[pivotIndex]] = [list[pivotIndex], list[i]];
+      pivotIndex++;
+    }
+    
+    // Draw the entire global list so the visualization stays full size
+    drawBlocks([...list]); 
+    await delay(delayMS);
+  }
+
+  // Swap the pivot into its final place
+  [list[pivotIndex], list[end]] = [list[end], list[pivotIndex]];
+  
+  drawBlocks([...list]);
+  await delay(delayMS);
+
+  return pivotIndex;
+}
+
+/*
+async function quickSort(list, delayMS = 100) {
+  const len = list.length
+
+  if (len <= 1) {
+    return list
+  }
+  
+  const p = list[len - 1]
+
+  const leftArr = []
+  const rightArr = []
+  for (let i = 0; i < len - 1; i++){
+    if (list[i] <= p) {
+      leftArr.push(list[i])
+    } else {
+      rightArr.push(list[i])
+    }
+
+    drawBlocks([...leftArr, ...rightArr])
+    await delay(delayMS)
+  }
+  return [...quickSort(leftArr), p,  ...quickSort(rightArr)]
+}
+*/
 
 
 
@@ -78,7 +185,7 @@ function generateList(min, max, length) {
   return randomList;
 }
 
-scaleList(unsortedList, scaledList);
+scaleList(unsortedList, scaledList); // only work with scaled list to draw
 
 
 function drawBlocks(list = [1,2,3,4,5]) {
@@ -115,40 +222,61 @@ function drawBlocks(list = [1,2,3,4,5]) {
 
 function drawMenu() {
   ctx.fillStyle = "rgba(12, 20, 35, 0.75)";
-  ctx.fillRect(60 * vw, canvas.height, 40 * vw, -canvas.height);
+  ctx.fillRect(60 * vw, canvas.height, 40 * vw, -canvas.height); // draw menu background
 
   ctx.fillStyle = "#1f2937"
-  ctx.fillRect(61 * vw, 5 * vh, 38 * vw, 15 * vh);
+  ctx.fillRect(61 * vw, 5 * vh, 38 * vw, 15 * vh); // draw menu box
 
   ctx.fillStyle = "white";
   ctx.font = `bold ${3 * vh}px Arial`;
   ctx.fillText(`Swaps: ${swapCount}`, 62 * vw, 9.5 * vh);
   ctx.fillText(`Steps: ${stepCount}`, 62 * vw, 13.2 * vh);
   ctx.fillText(`Delay: ${delayMS} ms`, 62 * vw, 16.9 * vh);
+  ctx.fillText(`Function execution time: ${functionTime.toFixed(2)} ms`, 72 * vw, 9.5 * vh);
+
+
+  const buttons = [
+ 
+  ]
+
+  for (let button of buttons) {
+    button.draw(ctx);
+  }
+
 
   requestAnimationFrame(drawMenu);
 }
 
-
-
-
-
-
-async function algorithmVisualizer (algorithm, list, delayMS) {
-  switch (algorithm) {
-    case 'bubbleSort':
-      const scaledList = scaleList(list);
-      await bubbleSort(list, delayMS);
-      drawBlocks(scaledList)
-  }
-  drawBlocks(list);
+function timeFunctionExecution(func, ...args) {
+  const startTime = performance.now();
+  func(...args);
+  const endTime = performance.now();
+  return endTime - startTime;
 }
 
-algorithmVisualizer('bubbleSort', scaledList, delayMS);
-drawMenu();
 
-//(async () => {
-  //await bubbleSort(scaledList, delayMS);
-  //drawBlocks(scaledList);
-//})();
+
+
+
+
+async function algorithmVisualizer(algorithm = 'bubbleSort', list, delayMS = 100) {
+  
+  switch (algorithm) {
+    case 'bubbleSort':
+      sortedList = await bubbleSort(list, delayMS);
+      break;
+    case 'quickSort':
+      await quickSort(list, 0, list.length - 1, delayMS);
+      console.log(scaledList)
+      break;
+  }
+
+
+}
+
+algorithmVisualizer('quickSort', scaledList, delayMS);
+
+
+
+drawMenu();
 

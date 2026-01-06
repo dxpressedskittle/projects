@@ -220,7 +220,7 @@ function compress(board, dir) {
 function move(dir) {
   compress(board, dir);
   merge(board, dir);
-  compress(board, dir);
+
   generateBlock();
 }
 

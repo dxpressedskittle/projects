@@ -59,13 +59,13 @@ for (let i=0; i<voxelTerrain; i++) {
 }
 
 
-//const terrain = generateTerrain({
-  //size: 100,
-  //spacing: 5,
-  //heightScale: 30,
-  //seed: Date.now() & 0xffffffff,
-  //octaves: 1000,
-//}); // Seed based off current time < 32 bits
+const terrain = generateTerrain({
+  size: 100,
+  spacing: 5,
+  heightScale: 30,
+  seed: Date.now() & 0xffffffff,
+  octaves: 1000,
+}); // Seed based off current time < 32 bits
 
 // register basic scene objects
 
@@ -84,7 +84,7 @@ const triangle = {
 
 registerScene(triangle)
 registerScene(makeCube([0, -1, 0], 1, "red", ["red", "orange"], "red")); 
-//registerScene(terrain)
+registerScene(terrain)
 
 
 // --- Global variables ---

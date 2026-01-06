@@ -181,7 +181,7 @@ if (typeof document !== 'undefined') {
         const scalarOutputs = outputs.map((v) => (v ? 1 : 0));
 
         // Default training parameters
-        const iterations = 100000000 // 10 million;
+        const iterations = 100000000
         const learningRate = 0.01;
 
         // Disable button while training to avoid re-entrancy
