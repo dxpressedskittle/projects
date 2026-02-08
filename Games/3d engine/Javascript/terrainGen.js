@@ -75,7 +75,6 @@ function generateUniqeSeed() {
 
 
 
-// Note: This rewrite assumes the Perlin class is available in scope.
 
 function generateVoxelTerrain(options = {}) {
   const {
