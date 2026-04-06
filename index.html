@@ -1,316 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>My Projects</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="icon" href="imgs/layers.svg" />
-  </head>
-  <body>
-    <main>
-      <h1 class="h1txt">My Projects</h1>
-      <p class="subtitle">A curated collection of small games and experiments — click a version to open.</p>
-      <section class="projects-list">
-        <article class="project-card completed">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Calculator</div>
-              <div class="project-desc">A simple calculator to apply operations on 2 numbers.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status finished">Finished</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/calculator/calc.html" data-version="1.0">Open</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Projects</title>
+  <link rel="icon" href="imgs/layers.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-        
+  <div class="noise"></div>
 
-        <article class="project-card completed">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Tic Tac Toe</div>
-              <div class="project-desc">2 player classic Tic Tac Toe.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status finished">Finished</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/ttt/ttt.html" data-version="1.0">Play</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
+  <header>
+    <div class="header-inner">
+      <div class="header-title">
+        <div class="logo-mark">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <h1>My Projects</h1>
+      </div>
+      <p class="subtitle">Games, experiments, and tools.</p>
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all">All <span class="count" id="count-all"></span></button>
+        <button class="filter-btn" data-filter="finished">Finished <span class="count" id="count-finished"></span></button>
+        <button class="filter-btn" data-filter="in-progress">In Progress <span class="count" id="count-in-progress"></span></button>
+      </div>
+    </div>
+  </header>
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">3D Engine</div>
-              <div class="project-desc">Exploratory 3D renderer & physics experiments.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/3d engine/3d.html" data-version="1.0">Open</button>
-            </div>
-            <div class="meta-muted">Work in progress</div>
-          </div>
-        </article>
+  <main>
+    <section class="grid" id="project-grid"></section>
+    <p class="empty-msg" id="empty-msg" style="display:none;">No projects match this filter.</p>
+  </main>
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Nueral Network</div>
-              <div class="project-desc">Exploratory nueral network programmed in javascript.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/Nueral Network/nn.html" data-version="1.0">Open</button>
-            </div>
-            <div class="meta-muted">Work in progress</div>
-          </div>
-        </article>
+  <footer>
+    <a href="https://github.com/dxpressedskittle" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .319.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      dxpressedskittle
+    </a>
+  </footer>
 
-         <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Particle simulator</div>
-              <div class="project-desc">Simulated particle game</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/Particle Simulator/particleSim.html" data-version="1.0">Open</button>
-            </div>
-            <div class="meta-muted">Work in progress</div>
-          </div>
-        </article>
+  <script>
+    /* ─────────────────────────────────────────────
+       PROJECTS 
+       Fields:
+         title    : string
+         desc     : string
+         status   : "finished" | "in-progress"
+         tags     : string[]          (optional)
+         versions : [ { label, url } ]
+       ───────────────────────────────────────────── */
+    const PROJECTS = [
+      {
+        title: "Calculator",
+        desc: "A simple calculator to apply operations on 2 numbers.",
+        status: "finished",
+        tags: ["tool"],
+        versions: [{ label: "Open", url: "Games/calculator/calc.html" }]
+      },
+      {
+        title: "Tic Tac Toe",
+        desc: "2 player classic Tic Tac Toe.",
+        status: "finished",
+        tags: ["game", "multiplayer"],
+        versions: [{ label: "Play", url: "Games/ttt/ttt.html" }]
+      },
+      {
+        title: "3D Engine",
+        desc: "Exploratory 3D renderer & physics experiments.",
+        status: "finished",
+        tags: ["graphics", "physics"],
+        versions: [{ label: "Open", url: "Games/3d engine/3d.html" }]
+      },
+      {
+        title: "Neural Network",
+        desc: "Exploratory neural network programmed in JavaScript.",
+        status: "finished",
+        tags: ["AI", "experiment"],
+        versions: [{ label: "Open", url: "Games/Neural Network/nn.html" }]
+      },
+      {
+        title: "Snake",
+        desc: "Classic Snake game.",
+        status: "in-progress",
+        tags: ["game", "arcade"],
+        versions: [{ label: "Play", url: "Games/snake/snake.html" }]
+      },
+      {
+        title: "Blackjack",
+        desc: "The classic card game, two versions.",
+        status: "finished",
+        tags: ["game", "cards"],
+        versions: [
+          { label: "v1.0", url: "Games/bj/v1/bj.html" },
+          { label: "v1.1", url: "Games/bj/v1.1/bjv1.1.html" }
+        ]
+      },
+       {
+        title: "Pong",
+        desc: "Classic Pong with simple physics.",
+        status: "finished",
+        tags: ["game", "arcade"],
+        versions: [{ label: "Play", url: "Games/pong/pong.html" }]
+      },
+      {
+        title: "Particle Simulator",
+        desc: "Simulated particle game.",
+        status: "in-progress",
+        tags: ["physics", "simulation"],
+        versions: [{ label: "Open", url: "Games/Particle Simulator/particleSim.html" }]
+      },
+      {
+        title: "Search Bar",
+        desc: "Algorithms and UI for searching and sorting.",
+        status: "in-progress",
+        tags: ["algorithm", "UI"],
+        versions: [{ label: "Open", url: "Games/Search Bar/search.html" }]
+      },
+     
+      {
+        title: "Search Algorithms", // need to add more search algorithms
+        desc: "Experiments with search routines and visualizations.",
+        status: "in-progress",
+        tags: ["algorithm", "visualizer"],
+        versions: [{ label: "Open", url: "Searching Algorithms/sa.html" }]
+      },
+      {
+        title: "APIs",
+        desc: "Small API examples and demos for practice.",
+        status: "in-progress",
+        tags: ["API", "demo"],
+        versions: [{ label: "Home", url: "API'S/apiindex.html" }]
+      },
+      {
+        title: "Conway's Game of Life",
+        desc: "Cellular automaton simulation.",
+        status: "in-progress",
+        tags: ["simulation", "automaton"],
+        versions: [{ label: "Play", url: "/Games/game of life/gol.html" }]
+      },
+      
+      {
+        title: "Flappy Bird",
+        desc: "Endless flapper, built from scratch.",
+        status: "in-progress",
+        tags: ["game", "arcade"],
+        versions: [{ label: "Play", url: "Games/Flappy Bird/flappyBird.html" }]
+      },
+      {
+        title: "2048",
+        desc: "2048 sliding puzzle game.",
+        status: "in-progress",
+        tags: ["game", "puzzle"],
+        versions: [{ label: "Play", url: "Games/2048/2048.html" }]
+      },
+      {
+        title: "Galactic Shooter",
+        desc: "Arcade space shooter.",
+        status: "in-progress",
+        tags: ["game", "arcade", "shooter"],
+        versions: [{ label: "Play", url: "Games/Galactic shooter/gs.html" }]
+      },
+    ];
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Blackjack</div>
-              <div class="project-desc">Blackjack, the classic card game.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In Progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/bj/v1/bj.html" data-version="1.0">v1.0</button>
-              <button class="version-btn" data-url="Games/bj/v1.1/bjv1.1.html" data-version="1.1">v1.1</button>
-            </div>
-            <div class="meta-muted">Multiversions</div>
-          </div>
-        </article>
+    /* ── Render ── */
+    const grid = document.getElementById("project-grid");
+    const emptyMsg = document.getElementById("empty-msg");
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Search Bar</div>
-              <div class="project-desc">Algorithms and UI for searching and sorting.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In Progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/Search Bar/search.html">Open</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
+    function buildCard(p) {
+      const tagsHTML = (p.tags || [])
+        .map(t => `<span class="tag">${t}</span>`)
+        .join("");
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Pong</div>
-              <div class="project-desc">Classic Pong with simple physics.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In Progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/pong/pong.html">Play</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
+      const versionsHTML = p.versions
+        .map(v => `<button class="ver-btn" onclick="nav('${v.url}')">${v.label}</button>`)
+        .join("");
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Search Algorithms</div>
-              <div class="project-desc">Experiments with search routines and visualizations.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In Progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Searching Algorithms/sa.html">Open</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
+      const card = document.createElement("article");
+      card.className = `card ${p.status}`;
+      card.dataset.status = p.status;
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="status-dot ${p.status}"></div>
+          <span class="status-label">${p.status === "finished" ? "Finished" : "In Progress"}</span>
+        </div>
+        <h2 class="card-title">${p.title}</h2>
+        <p class="card-desc">${p.desc}</p>
+        <div class="card-tags">${tagsHTML}</div>
+        <div class="card-footer">
+          <div class="versions">${versionsHTML}</div>
+        </div>
+      `;
+      return card;
+    }
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">APIs</div>
-              <div class="project-desc">Small API examples and demos for practice.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In Progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="API'S/apiindex.html">Home</button>
-            </div>
-            <div class="meta-muted">API demos</div>
-          </div>
-        </article>
+    function nav(url) { window.location.href = url; }
 
+    function render(filter) {
+      grid.innerHTML = "";
+      const filtered = filter === "all" ? PROJECTS : PROJECTS.filter(p => p.status === filter);
+      if (filtered.length === 0) {
+        emptyMsg.style.display = "block";
+      } else {
+        emptyMsg.style.display = "none";
+        filtered.forEach(p => grid.appendChild(buildCard(p)));
+      }
+    }
 
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Conway's Game of Life</div>
-              <div class="project-desc">Cellular automaton game</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="/workspaces/projects/Games/game of life/gol.html">Play</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
+    /* ── Counts ── */
+    document.getElementById("count-all").textContent = PROJECTS.length;
+    document.getElementById("count-finished").textContent = PROJECTS.filter(p => p.status === "finished").length;
+    document.getElementById("count-in-progress").textContent = PROJECTS.filter(p => p.status === "in-progress").length;
 
-
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Snake</div>
-              <div class="project-desc">Classic Snake game.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/snake/snake.html">Play</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
-
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Flappy Bird</div>
-              <div class="project-desc">Small Flappy Bird project</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/Flappy Bird/flappyBird.html">Open</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
-
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">2048</div>
-              <div class="project-desc">2048 puzzle game.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/2048/2048.html">Play</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
-
-        <article class="project-card in-progress">
-          <div class="project-head">
-            <div>
-              <div class="project-title">Galactic Shooter</div>
-              <div class="project-desc">Arcade space shooter.</div>
-            </div>
-            <div class="project-meta">
-              <span class="status in-progress">In progress</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="versions">
-              <button class="version-btn" data-url="Games/Galactic shooter/gs.html">Play</button>
-            </div>
-            <div class="meta-muted">v1.0</div>
-          </div>
-        </article>
-
-       
-
-       
-      </section>
-    </main>
-
-    <footer>
-      <p>
-        Created by
-        <a href="https://github.com/dxpressedskittle" target="_blank"
-          >Dxpressedskittle</a
-        >
-      </p>
-    </footer>
-
-    <script>
-      document.querySelectorAll(".version-btn").forEach((btn) => {
-        btn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          const url = btn.getAttribute("data-url");
-          if (url) {
-            window.location.href = url;
-          }
-        });
+    /* ── Filter buttons ── */
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        render(this.dataset.filter);
       });
-    </script>
-  </body>
+    });
+
+    render("all");
+  </script>
+</body>
 </html>
