@@ -1,212 +1,358 @@
-
-
 // Viewport variables
-const viewPortWidth = window.visualViewport?.width || document.documentElement.clientWidth;
-const viewPortHeight = window.visualViewport?.height || document.documentElement.clientHeight;
+const viewPortWidth =
+  window.visualViewport?.width || document.documentElement.clientWidth;
+const viewPortHeight =
+  window.visualViewport?.height || document.documentElement.clientHeight;
 const vw = viewPortWidth / 100;
 const vh = viewPortHeight / 100;
 
+// Canvas
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 canvas.width = viewPortWidth;
 canvas.height = viewPortHeight;
-canvas.style.width = '100vw';
-canvas.style.height = '100vh';
+canvas.style.width = "100vw";
+canvas.style.height = "100vh";
 
-const cellSize = 20;
-const rows = Math.floor(canvas.height / cellSize);
-const cols = Math.floor(canvas.width / cellSize);
-let grid = Array.from({ length: rows }, () => Array(cols).fill(0));
-let bufferGrid = Array.from({length: rows}, () => Array(cols).fill(0))
-const cellGrid = new Set()
+// Grid
+const cellSize = 10;
+let cellGrid = new Set();
 
-const key = (r,c) => `${r},${c}` // format all data into a string for mapping
+const key = (r, c) => `${r},${c}`; // format all data into a string for mapping
 
-let cameraX = 0
-let cameraY = 0
-let lastMouseX = 0 
-let lastMouseY = 0
-let offsetX, offsetY
-let isDragging = false
+// Camera 
+let cameraX = 0;
+let cameraY = 0;
+let lastMouseX = 0;
+let lastMouseY = 0;
+let isDragging = false;
+let zoom = 1;
 
-let fps = 5
-let lastTime = 0
-let fpsInterval = 1000 / fps
+// FPS control
+let fps = 5;
+let lastTime = 0;
+let fpsInterval = 1000 / fps;
 
-const populateChance = 0.2; // 20% chance to populate a cell in the begining
+// Game variables
+const populateChance = 1; // 20% chance to populate a cell in the begining
+let generation = 0;
+
+
+let patterns = {}; // initalize and store RLE patterns
+
+fetch("rles/octametapixel.rle")
+  .then(r => r.text()) // Get the raw RLE string
+  .then(data => {
+    loadRLE(data, 0, 0);
+  });
+
+
+
+
+
+// Controls
+const fpsSlider = document.getElementById("fps-slider");
+const fpsValue = document.getElementById("fps-val");
+
+const btnPlay = document.getElementById("btn-play");
+const btnStep = document.getElementById("btn-step");
+const btnClear = document.getElementById("btn-clear");
+const btnReset = document.getElementById("btn-reset");
+const generationCounter = document.getElementById("stat-gen");
+const cellsCounter = document.getElementById("stat-cells");
+
+btnClear.addEventListener("click", () => {
+  cellGrid.clear();
+});
+
+btnReset.addEventListener("click", () => {
+  seedGrid(populateChance);
+});
+
+btnStep.addEventListener("click", () => {
+  cellGrid = updateGrid();
+});
+
+btnPlay.addEventListener("click", () => {
+  if (fpsInterval) {
+    fpsInterval = null;
+    btnPlay.textContent = "▶";
+  } else {
+    fpsInterval = 1000 / fps;
+    lastTime = performance.now();
+    btnPlay.textContent = "◼";
+  }
+});
+
+fpsSlider.addEventListener("input", (e) => {
+  fps = e.target.value;
+  fpsValue.textContent = fps;
+  if (fpsInterval) {
+    fpsInterval = 1000 / fps;
+    lastTime = performance.now();
+  }
+});
+
 
 function seedGrid(populateChance) {
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
+  cellGrid.clear();
+  generation = 0;
+  // seed a finite region around the origin — grid itself is infinite
+  const seedCols = Math.floor(viewPortWidth  / cellSize);
+  const seedRows = Math.floor(viewPortHeight / cellSize);
+  for (let r = 0; r < seedRows; r++) {
+    for (let c = 0; c < seedCols; c++) {
       if (Math.random() < populateChance) {
-        cellGrid.add(key(r,c))
+        cellGrid.add(`${r},${c}`);
       }
     }
   }
-
-  for (const value of cellGrid) {
-    cellX = value[0]
-    cellY = value[1]
-    console.log(cellX,cellY)
-  }
-
 }
+
+//seedGrid(populateChance);
 
 function drawGrid() {
-  ctx.strokeStyle = '#cccccce3';
+  const cellPx = cellSize * zoom;
+  // wrap offsets so lines tile seamlessly as camera moves
+  const ox = ((cameraX % cellPx) + cellPx) % cellPx;
+  const oy = ((cameraY % cellPx) + cellPx) % cellPx;
+
+  // how many lines needed to fill the viewport at current zoom
+  const numCols = Math.ceil(canvas.width  / cellPx) + 1;
+  const numRows = Math.ceil(canvas.height / cellPx) + 1;
+
+  ctx.strokeStyle = "#1a1a1a";
   ctx.lineWidth = 1;
 
-  const offsetX = cameraX % cellSize
-  const offsetY = cameraY % cellSize
-
-
-  for (let col = 0; col <= cols; col++) {
+  for (let col = 0; col <= numCols; col++) {
     ctx.beginPath();
-    ctx.moveTo(col * cellSize + offsetX, 0); 
-    ctx.lineTo(col * cellSize + offsetX, canvas.height);
+    ctx.moveTo(col * cellPx + ox, 0);
+    ctx.lineTo(col * cellPx + ox, canvas.height);
     ctx.stroke();
-}
+  }
 
-for (let row = 0; row <= rows; row++) {
+  for (let row = 0; row <= numRows; row++) {
     ctx.beginPath();
-    ctx.moveTo(0, row * cellSize + offsetY);
-    ctx.lineTo(canvas.width, row * cellSize + offsetY);
+    ctx.moveTo(0,            row * cellPx + oy);
+    ctx.lineTo(canvas.width, row * cellPx + oy);
     ctx.stroke();
-}
+  }
 }
 
 function drawCells() {
-  ctx.fillStyle = '#00ff00e3';
+  ctx.fillStyle = "#00ff00e3";
+  const cellPx = cellSize * zoom;
+  cellGrid.forEach(k => {
+    const [r, c] = k.split(",").map(Number);
+    ctx.fillRect(c * cellPx + cameraX, r * cellPx + cameraY, cellPx - 1, cellPx - 1);
+  });
+}
 
-   
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[r].length; c++) {
-      if (grid[r][c]) {
-        ctx.fillRect((c* cellSize) + cameraX, (r * cellSize) + cameraY, cellSize, cellSize);
-      }
+function getNeighborCount(r, c) {
+  let count = 0;
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      if (i === 0 && j === 0) continue;
+      if (cellGrid.has(`${r + i},${c + j}`)) count++; // 0(n) lookup time with .has
     }
   }
-  ctx.fillStyle = "black"
+  return count;
 }
 
-function getNeighborCount(grid, row, col) {
-  let neighbors = 0
+function updateGrid() {
+    const newCellGrid = new Set();
+    const neighborCounts = new Map(); // Use Map to track neighbors
+    const candidates = new Set();
 
-  for (let i=-1; i<=1; i++) {
-    for (let j = -1; j<=1; j++) {
-      if (i=== 0 && j === 0) continue
-
-      let r = row + i
-      let c = col + j 
-
-       if (r >= 0 && r < grid.length && c >= 0 && c < grid[0].length) {
-        if (grid[r][c]) {
-           neighbors++;
-        }
-         
-        }
-      }
-    }
-  return neighbors;
-}
-    
-
-function updateGrid(grid) {
-  let bufferGrid = Array.from({ length: grid.length }, () => Array(grid[0].length).fill(0));
-
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[r].length; c++) {
-      const neighbors = getNeighborCount(grid, r, c)
-      let currentState = grid[r][c]
-
-        if (currentState === 1) {
-           // cells died if not occupied by 3 neighbors
-            if (neighbors < 2 || neighbors > 3) {
-                bufferGrid[r][c] = 0; // Die
-              } else {
-                // cell survives
-                bufferGrid[r][c] = 1;
-              }
-          } else {
-              // dead cell with 3 neighbors is born
-              if (neighbors === 3) {
-                  bufferGrid[r][c] = 1;
-              }
+    cellGrid.forEach(key => {
+        const [r, c] = key.split(',').map(Number);
+        
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                const nr = r + i;
+                const nc = c + j;
+                const neighborKey = `${nr},${nc}`;
+                
+                candidates.add(neighborKey);
+                neighborCounts.set(neighborKey, (neighborCounts.get(neighborKey) || 0) + 1);
             }
         }
-    }
-  return bufferGrid
-}
+    });
+    candidates.forEach(key => {
+        const count = neighborCounts.get(key);
+        const isAlive = cellGrid.has(key);
+      
+        if (isAlive) {
+            if (count === 3 || count === 4) { // Survives: 2+1, 3+1
+                newCellGrid.add(key);
+            }
+        } else {
+            if (count === 3) { // Birthed: 3
+                newCellGrid.add(key);
+            }
+        }
+    });
 
+    return newCellGrid;
+  }
 
-seedGrid(populateChance);
 
 
 function gameLoop(currentTime) {
-    requestAnimationFrame(gameLoop);
-    ctx.strokeStyle = 'black';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  requestAnimationFrame(gameLoop);
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    let elapsed = currentTime - lastTime;
-    drawGrid(); // update grid outside of fps loop
-    drawCells()
+  let elapsed = currentTime - lastTime;
+  drawGrid(); // update grid outside of fps loop
+  drawCells();
 
-
-    if (elapsed > fpsInterval) {
-      lastTime = currentTime - (elapsed % fpsInterval);
-      grid = updateGrid(grid)
-    }
-
-
+  if (fpsInterval && elapsed > fpsInterval) {
+    lastTime = currentTime - (elapsed % fpsInterval);
+    cellGrid = updateGrid();
+    generation++;
+    generationCounter.textContent = generation;
+    cellsCounter.textContent = cellGrid.size;
+  }
 }
 
-function getCell(x,y) {
-  gridX = x - cameraX
-  gridY = y - cameraY 
+requestAnimationFrame(gameLoop);
 
+function getCell(x, y) {
+  const cellPx = cellSize * zoom;
   return {
-        col: Math.floor(gridX / cellSize),
-        row: Math.floor(gridY / cellSize)
-    };
+    col: Math.floor((x - cameraX) / cellPx),
+    row: Math.floor((y - cameraY) / cellPx),
+  };
 }
 
+function placeCell(row, col) {
+  if (cellGrid.has(`${row},${col}`)) {
+    cellGrid.delete(`${row},${col}`);
+    return;
+  }else {
+    cellGrid.add(`${row},${col}`); 
 
-
-function placeCell(row,col) {
-  grid[row][col] = 1
+  }
 }
 
-window.addEventListener('click', function(event) {
-    const { row, col } = getCell(event.clientX, event.clientY);
-    console.log(`Cell placed: ${row}, ${col}`)  
-    placeCell(row,col)
-})
+window.addEventListener("click", function (event) {
+  if (event.target.closest("#hud")) return; // ignore clicks on the gui
+  const { row, col } = getCell(event.clientX, event.clientY);
+  placeCell(row, col);
+});
 
-window.addEventListener('mousedown', (e) => {
+window.addEventListener("mousedown", (e) => {
+  if (e.target.closest("#hud")) return;
+  lastMouseX = e.clientX;
+  lastMouseY = e.clientY;
+  isDragging = true;
+});
+
+window.addEventListener("mouseup", (e) => {
+  isDragging = false;
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (isDragging) {
+    distDraggedX = e.clientX - lastMouseX;
+    distDraggedY = e.clientY - lastMouseY;
+
+    cameraX += distDraggedX;
+    cameraY += distDraggedY;
+
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
-    isDragging = true;
+  }
 });
 
-window.addEventListener('mouseup', (e) => { isDragging = false })
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  const newZoom = Math.max(0.2, Math.min(5, zoom * delta));
 
-window.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-        distDraggedX = e.clientX - lastMouseX;
-        distDraggedY = e.clientY - lastMouseY;
+  // anchor zoom to mouse position so it doesn't jump
+  cameraX = e.clientX - (e.clientX - cameraX) * (newZoom / zoom);
+  cameraY = e.clientY - (e.clientY - cameraY) * (newZoom / zoom);
 
-        cameraX += distDraggedX
-        cameraY += distDraggedY 
+  zoom = newZoom;
+}, { passive: false });
 
-        lastMouseX = e.clientX
-        lastMouseY = e.clientY
 
-      
+
+function loadRLE(rle, originRow = 0, originCol = 0) {
+  const newCells = [];
+
+  const lines = rle.split("\n").filter(l => !l.startsWith("#") && !l.startsWith("x"));
+  const data = lines.join("").split("!")[0];
+
+  let row = 0, col = 0, count = "";
+
+  for (const ch of data) {
+    if (ch >= "0" && ch <= "9") {
+      count += ch;
+    } else {
+      const n = count === "" ? 1 : parseInt(count);
+      count = "";
+
+      if (ch === "b") {
+        col += n;
+      } else if (ch === "o") {
+        for (let i = 0; i < n; i++) {
+          newCells.push(`${originRow + row},${originCol + col + i}`);
+        }
+        col += n;
+      } else if (ch === "$") {
+        row += n;
+        col = 0;
+      }
     }
-});
+  }
+  // batch insert (faster than adding one by one during parsing)
+  for (const cell of newCells) {
+    cellGrid.add(cell);
+  }
+}
 
 
-  requestAnimationFrame(gameLoop)
+async function loadRLENonBlocking(rle, originRow = 0, originCol = 0) {
+  const lines = rle.split("\n").filter(l => !l.startsWith("#") && !l.startsWith("x"));
+  const data = lines.join("").split("!")[0];
+
+  let row = 0, col = 0, count = "";
+  let buffer = [];
+
+  for (let idx = 0; idx < data.length; idx++) {
+    const ch = data[idx];
+
+    if (ch >= "0" && ch <= "9") {
+      count += ch;
+    } else {
+      const n = count === "" ? 1 : parseInt(count);
+      count = "";
+
+      if (ch === "b") {
+        col += n;
+      } else if (ch === "o") {
+        for (let i = 0; i < n; i++) {
+          buffer.push(`${originRow + row},${originCol + col + i}`);
+        }
+        col += n;
+      } else if (ch === "$") {
+        row += n;
+        col = 0;
+      }
+    }
+
+    // yield every ~5000 cells
+    if (buffer.length > 5000) {
+      for (const c of buffer) cellGrid.add(c);
+      buffer = [];
+      await new Promise(r => setTimeout(r, 0)); // yield to UI
+    }
+  }
+
+  for (const c of buffer) cellGrid.add(c);
+}
 

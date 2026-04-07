@@ -1,0 +1,13 @@
+[package]
+name = "update-cell"
+version = "0.1.0"
+edition = "2026"
+authors = ["Colton Prescott <hinuto026@gmail.com>"]
+description = "A faster update method for Conways Game of Life"
+repository = "https://github.com/dxpressedskittle/projects"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
