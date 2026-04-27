@@ -16,7 +16,7 @@ canvas.style.width = "100vw";
 canvas.style.height = "100vh";
 
 // Grid
-const cellSize = 10;
+const cellSize = 5;
 let cellGrid = new Set();
 
 const key = (r, c) => `${r},${c}`; // format all data into a string for mapping
@@ -35,16 +35,19 @@ let lastTime = 0;
 let fpsInterval = 1000 / fps;
 
 // Game variables
-const populateChance = 1; // 20% chance to populate a cell in the begining
+const populateChance = 0.1; // 20% chance to populate a cell in the begining
 let generation = 0;
 
 
 let patterns = {}; // initalize and store RLE patterns
 
-fetch("rles/octametapixel.rle")
-  .then(r => r.text()) // Get the raw RLE string
+loadRLENonBlocking(`x = 3, y = 3, rule = B3/S23
+bo$2bo$3o!`, 0, 0); // test pattern (glider)
+
+fetch("/Games/game of life/rles/rle.json")
+  .then(r => r.json()) // use .json for json file and .text for .rle files
   .then(data => {
-    loadRLE(data, 0, 0);
+
   });
 
 
@@ -59,6 +62,7 @@ const btnPlay = document.getElementById("btn-play");
 const btnStep = document.getElementById("btn-step");
 const btnClear = document.getElementById("btn-clear");
 const btnReset = document.getElementById("btn-reset");
+const btnMovement = document.getElementById("btn-movement");
 const generationCounter = document.getElementById("stat-gen");
 const cellsCounter = document.getElementById("stat-cells");
 
@@ -72,6 +76,20 @@ btnReset.addEventListener("click", () => {
 
 btnStep.addEventListener("click", () => {
   cellGrid = updateGrid();
+  generation++;
+  generationCounter.textContent = generation;
+  cellsCounter.textContent = cellGrid.size;
+});
+
+btnMovement.addEventListener("click", () => {
+  if (btnMovement.classList.contains("active")) {
+    btnMovement.classList.remove("active");
+    btnMovement.textContent = "🖌"; 
+
+  } else {
+    btnMovement.classList.add("active");
+    btnMovement.textContent = "⤧";
+  }
 });
 
 btnPlay.addEventListener("click", () => {
@@ -184,11 +202,11 @@ function updateGrid() {
         const isAlive = cellGrid.has(key);
       
         if (isAlive) {
-            if (count === 3 || count === 4) { // Survives: 2+1, 3+1
+            if (count == 3 || count == 4) { // Survives: 2+1, 3+1
                 newCellGrid.add(key);
             }
         } else {
-            if (count === 3) { // Birthed: 3
+            if (count == 3 ) { // Birthed: 3
                 newCellGrid.add(key);
             }
         }
@@ -239,8 +257,11 @@ function placeCell(row, col) {
 
 window.addEventListener("click", function (event) {
   if (event.target.closest("#hud")) return; // ignore clicks on the gui
-  const { row, col } = getCell(event.clientX, event.clientY);
-  placeCell(row, col);
+  if (!btnMovement.classList.contains("active")) {
+        const { row, col } = getCell(event.clientX, event.clientY);
+        placeCell(row, col)
+  }; // only place cells when movement mode is off
+   
 });
 
 window.addEventListener("mousedown", (e) => {
@@ -255,16 +276,21 @@ window.addEventListener("mouseup", (e) => {
 });
 
 window.addEventListener("mousemove", (e) => {
-  if (isDragging) {
-    distDraggedX = e.clientX - lastMouseX;
-    distDraggedY = e.clientY - lastMouseY;
+  if (!isDragging) return;
 
-    cameraX += distDraggedX;
-    cameraY += distDraggedY;
+  if (btnMovement.classList.contains("active")) {
+    cameraX += e.clientX - lastMouseX;
+    cameraY += e.clientY - lastMouseY;
+  } 
+  else {
+    if (e.clientX === lastMouseX && e.clientY === lastMouseY) return;
 
-    lastMouseX = e.clientX;
-    lastMouseY = e.clientY;
+    const { row, col } = getCell(e.clientX, e.clientY);
+    placeCell(row, col); 
   }
+  
+  lastMouseX = e.clientX;
+  lastMouseY = e.clientY;
 });
 
 canvas.addEventListener("wheel", (e) => {

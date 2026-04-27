@@ -109,10 +109,10 @@ let settings = {
   audio: {},
   controls: {
     mouseSensitivity: 0.005,
-    w: "w",
-    a: "a",
-    s: "s",
-    d: "d",
+    foward: "w",
+    left: "a",
+    down: "s",
+    right: "d",
     jump: "space",
     crouch: "shift",
   },
@@ -131,7 +131,7 @@ var totalVertices = 0;
 var loadedVertices = 0;
 
 
-// --- Used for debug info ---
+// --- Debug info ---
 
 let secondsPassed = 0;
 let oldTimeStamp;
