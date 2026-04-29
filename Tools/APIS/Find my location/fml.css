@@ -1,0 +1,24 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#main-container {
+    display: flex; /* This aligns children horizontally */
+    width: 100vw;
+    height: 100vh;
+}
+
+#info-container {
+    width: 300px; /* Use a fixed width for the sidebar */
+    height: 100%;
+    overflow-y: auto;
+    padding: 15px;
+    background: #f4f4f4;
+}
+
+#map {
+    flex-grow: 1; /* This makes the map take up all remaining width */
+    height: 100%; /* Important: Leaflet needs this to calculate tile positions */
+}

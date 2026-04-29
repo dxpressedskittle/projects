@@ -1,3 +1,5 @@
+var map = L.map('map').setView([51.50, -0.09], 13);
+
 async function getLocation() {
   const url = "http://ip-api.com/json/?fields=continent,country,regionName,city,district,zip,lat,lon,timezone,currency,as,asname,reverse,query";
   try {
@@ -33,6 +35,7 @@ async function getIP() {
 function displayData(data) {
   const info = document.getElementById("info");
   info.innerHTML = `
+    <strong>Query IP:</strong> ${data.query}<br>
     <strong>Continent:</strong> ${data.continent}<br>
     <strong>Country:</strong> ${data.country}<br>
     <strong>Region:</strong> ${data.regionName}<br>
@@ -45,9 +48,28 @@ function displayData(data) {
     <strong>Currency:</strong> ${data.currency}<br>
     <strong>ISP:</strong> ${data.asname}<br>
     <strong>Reverse DNS:</strong> ${data.reverse}<br>
-    <strong>Query IP:</strong> ${data.query}<br>
   `;
+
+  map.setView([data.lat, data.lon], 13);
+  
+  // add a small marker and circle around location
+  L.marker([data.lat, data.lon]).addTo(map)
+    .bindPopup(data.city).openPopup();
+  
+    var circle = L.circle([data.lat, data.lon], {
+      color: 'red',
+      fillColor: '#f03',
+      fillOpacity: 0.5,
+      radius: 1000
+    }).addTo(map)
 }
+
+
 
 getLocation();
 getIP();
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);

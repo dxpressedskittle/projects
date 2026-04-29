@@ -133,7 +133,7 @@
         desc: "Small API examples and demos for practice.",
         status: "in-progress",
         tags: ["API", "demo"],
-        versions: [{ label: "Home", url: "Tools/API'S/apiindex.html" }]
+        versions: [{ label: "Home", url: "/Tools/APIS/apiindex.html" }]
       },
       {
         title: "Conway's Game of Life",
@@ -204,7 +204,9 @@
       return card;
     }
 
-    function nav(url) { window.location.href = url; }
+    function nav(url) { 
+      window.location.href = url; 
+    }
 
     function render(filter) {
       grid.innerHTML = "";
@@ -230,7 +232,7 @@
         render(this.dataset.filter);
       });
     });
-
+    
     render("all");
   </script>
 </body>
