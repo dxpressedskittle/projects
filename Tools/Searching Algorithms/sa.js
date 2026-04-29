@@ -1,5 +1,4 @@
-import { getDigit, mostDigits, digitCount } from "./saHelpers.js"
-
+import { getDigit, mostDigits, digitCount } from "./saHelpers.js";
 
 const canvas = document.getElementById("canvas");
 const viewPortWidth = document.documentElement.clientWidth;
@@ -9,34 +8,28 @@ const vh = viewPortHeight / 100;
 const ctx = canvas.getContext("2d");
 canvas.width = viewPortWidth;
 canvas.height = viewPortHeight;
-const textFontSize = Math.max(12, Math.min(viewPortWidth / 65, 25))
+const textFontSize = Math.max(12, Math.min(viewPortWidth / 65, 25));
 
-
-const listLength = 100;
+const listLength = 152;
 const listMin = 1;
 const listMax = 1000;
 
-
 const unsortedList = generateList(listMin, listMax, listLength);
-let isSorting = false
+let isSorting = false;
 const scaledList = [];
 const stateList = new Array(listLength).fill("unsorted"); // used to color blocks
 
 let functionTime = 0;
 
-
-  
-
 const blockMargin = 0.5 * vw;
 const yOffset = 5 * vh;
 const maxBlockHeight = 143;
 const blockWidth = (60 * vw) / unsortedList.length;
-const blockFontSize = blockWidth / 2
+const blockFontSize = viewPortWidth/ 150;
 
-let delayMS = 5
-let swapCount = 0
+let delayMS = 5;
+let swapCount = 0;
 let stepCount = 0;
-
 
 class Button {
   constructor(x, y, width, height, label, color) {
@@ -59,7 +52,7 @@ class Button {
     context.fillText(
       this.label,
       this.x + this.width / 2,
-      this.y + this.height / 2
+      this.y + this.height / 2,
     );
   }
 
@@ -77,29 +70,25 @@ class Button {
 const buttons = [
   new Button(62 * vw, 32 * vh, 150, 50, "Bubble Sort", "#4ade80"),
   new Button(62 * vw, 40 * vh, 150, 50, "Quick Sort", "#60a5fa"),
-  new Button (62 * vw, 48 * vh, 150, 50, "Radix Sort", "#bd1eccff"),
-  
-  new Button(82 * vw, 52 * vh, 150, 50, "Reset List", "#ec4545ff")
+  new Button(62 * vw, 48 * vh, 150, 50, "Radix Sort", "#bd1eccff"),
 
-  ]
+  new Button(82 * vw, 52 * vh, 150, 50, "Shuffle List", "#ec4545ff"),
+];
 
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
 
 async function bubbleSort(list, delayMS = 100) {
   let len = list.length;
   swapCount = 0;
   stepCount = 0;
-  
 
   for (let i = 0; i < len; i++) {
     for (let j = 0; j < len - i - 1; j++) {
-
       stepCount++;
 
-      // mark active 
+      // mark active
       stateList[j] = "active";
       stateList[j + 1] = "active";
 
@@ -119,7 +108,12 @@ async function bubbleSort(list, delayMS = 100) {
   }
 }
 
-async function quickSort(list, start = 0, end = list.length - 1, delayMS = 100) {
+async function quickSort(
+  list,
+  start = 0,
+  end = list.length - 1,
+  delayMS = 100,
+) {
   if (start >= end) {
     if (start >= 0 && start < list.length) {
       stateList[start] = "sorted";
@@ -134,7 +128,6 @@ async function quickSort(list, start = 0, end = list.length - 1, delayMS = 100) 
 
   await quickSort(list, start, index - 1, delayMS);
   await quickSort(list, index + 1, end, delayMS);
-  
 }
 
 async function partition(list, start, end, delayMS) {
@@ -144,7 +137,7 @@ async function partition(list, start, end, delayMS) {
   stateList[end] = "active"; // mark pivot
 
   for (let i = start; i < end; i++) {
-    stepCount++
+    stepCount++;
     stateList[i] = "active";
     stateList[pivotIndex] = "active";
 
@@ -160,7 +153,7 @@ async function partition(list, start, end, delayMS) {
     drawBlocks(list, stateList);
     await delay(delayMS);
 
-    // reset states 
+    // reset states
     stateList[i] = "unsorted";
 
     if (swapped) {
@@ -172,8 +165,7 @@ async function partition(list, start, end, delayMS) {
 
   // place pivot box in correct position
   [list[pivotIndex], list[end]] = [list[end], list[pivotIndex]];
-  swapCount++
-  
+  swapCount++;
 
   stateList[end] = "unsorted";
   stateList[pivotIndex] = "active";
@@ -195,12 +187,12 @@ async function radixSort(list, delayMS = 100) {
 
     for (let i = 0; i < list.length; i++) {
       stepCount++;
-      
+
       // Highlight current element being inspected
       stateList[i] = "active";
       drawBlocks(list, stateList);
       if (delayMS != 0) {
-      await delay(delayMS);
+        await delay(delayMS);
       }
 
       let digit = getDigit(list[i], k);
@@ -214,16 +206,16 @@ async function radixSort(list, delayMS = 100) {
     for (let b = 0; b < digitBuckets.length; b++) {
       for (let val of digitBuckets[b]) {
         list[idx] = val;
-        
+
         // visual feedback as elements are placed back
         stateList[idx] = "active";
         drawBlocks(list, stateList);
 
         if (delayMS != 0) {
-      await delay(delayMS);
-      }
-        
-        stateList[idx] = (k === maxDigits - 1) ? "sorted" : "unsorted";
+          await delay(delayMS);
+        }
+
+        stateList[idx] = k === maxDigits - 1 ? "sorted" : "unsorted";
         idx++;
       }
     }
@@ -256,8 +248,6 @@ async function quickSort(list, delayMS = 100) {
 }
 */
 
-
-
 function scaleList(list, destination = []) {
   destination.length = 0;
   const largestNum = Math.max(...list);
@@ -278,7 +268,6 @@ function generateList(min, max, length) {
 
 scaleList(unsortedList, scaledList); // only work with scaled list to draw
 
-
 function drawBlocks(list, states = []) {
   ctx.clearRect(0, 0, 60 * vw, canvas.height);
 
@@ -293,7 +282,12 @@ function drawBlocks(list, states = []) {
     const blockHeight = list[i] * 5;
 
     ctx.fillStyle = color;
-    ctx.fillRect(blockWidth * i, canvas.height - yOffset, blockWidth, -blockHeight);
+    ctx.fillRect(
+      blockWidth * i,
+      canvas.height - yOffset,
+      blockWidth,
+      -blockHeight,
+    );
 
     // border
     ctx.strokeStyle = "black";
@@ -301,13 +295,28 @@ function drawBlocks(list, states = []) {
       blockWidth * i,
       canvas.height - (blockHeight + yOffset),
       blockWidth,
-      blockHeight
+      blockHeight,
     );
 
-    // index label
     ctx.fillStyle = "black";
     ctx.font = `${blockFontSize}px Arial`;
-    ctx.fillText(i + 1, (blockWidth * i) + blockWidth / 2, canvas.height - 2 * vh);
+    // count by 1's when less than 100
+    if (list.length / 50 < 1) {
+      // index label
+      ctx.fillText(
+        i + 1,
+        blockWidth * i + blockFontSize,
+        canvas.height - 2 * vh,
+      ); // else count's by 10's, 100's, ect...
+    } else if ((i + 1) % 10 == 0) {
+      ctx.fillText(
+        i + 1,
+        blockWidth * i - blockFontSize ,
+        canvas.height - 2 * vh,
+      );
+      
+    }
+      
   }
 }
 
@@ -315,56 +324,63 @@ async function drawMenu() {
   ctx.fillStyle = "rgba(12, 20, 35, 0.75)";
   ctx.fillRect(60 * vw, canvas.height, 40 * vw, -canvas.height); // draw menu background
 
-  ctx.fillStyle = "#1f2937"
+  ctx.fillStyle = "#1f2937";
   ctx.fillRect(61 * vw, 5 * vh, 38 * vw, 15 * vh); // draw stats box
 
-  ctx.fillRect(61 * vw,  30 * vh, 38 * vw, 70 * vh)
-  ctx.fillStyle = "rgba(12, 20, 35, 0.75)"
-  ctx.fillRect(80 * vw, 30 * vh, 20 * vw, 30 * vh)
-  ctx.fillStyle = "rgba(6, 12, 22, 0.75)"
-  ctx.fillRect(79.8 * vw, 30* vh, 15, 30 * vh)
-  ctx.fillRect(79.8 * vw, 60 * vh, 19.2 *vw , 15)
+  ctx.fillRect(61 * vw, 30 * vh, 38 * vw, 70 * vh);
+  ctx.fillStyle = "rgba(12, 20, 35, 0.75)";
+  ctx.fillRect(80 * vw, 30 * vh, 20 * vw, 30 * vh);
+  ctx.fillStyle = "rgba(6, 12, 22, 0.75)";
+  ctx.fillRect(79.8 * vw, 30 * vh, 15, 30 * vh);
+  ctx.fillRect(79.8 * vw, 60 * vh, 19.2 * vw, 15);
 
   ctx.fillStyle = "white";
   ctx.font = `bold ${textFontSize}px Arial`;
   ctx.fillText(`Swaps: ${swapCount}`, 65 * vw, 7.5 * vh);
   ctx.fillText(`Steps: ${stepCount}`, 65 * vw, 10.5 * vh);
   ctx.fillText(`Delay: ${delayMS} ms`, 66 * vw, 13.5 * vh);
-  ctx.fillText(`Total execution time: ${functionTime.toFixed(2)} Ms`, 85 * vw, 7.5 * vh);
-  ctx.fillText(`Function execution time: ${(Math.max(0, functionTime - (stepCount * delayMS)).toFixed(2))} ms`, 85 * vw, 10.5 * vh)
-  ctx.fillText(`Average time per step: ${(Math.max(0, (functionTime - (stepCount * delayMS)) / stepCount).toFixed(2))} ms`,  85 * vw, 13.5 * vh) // function execution time / steps to find average
-
-
-
-
+  ctx.fillText(
+    `Total execution time: ${functionTime.toFixed(2)} Ms`,
+    85 * vw,
+    7.5 * vh,
+  );
+  ctx.fillText(
+    `Function execution time: ${Math.max(0, functionTime - stepCount * delayMS).toFixed(2)} ms`,
+    85 * vw,
+    10.5 * vh,
+  );
+  ctx.fillText(
+    `Average time per step: ${Math.max(0, (functionTime - stepCount * delayMS) / stepCount).toFixed(2)} ms`,
+    85 * vw,
+    13.5 * vh,
+  ); // function execution time / steps to find average
 
   for (let button of buttons) {
     button.draw(ctx);
   }
 
-
   requestAnimationFrame(drawMenu);
 }
 
-canvas.addEventListener('click', (event) => {
+canvas.addEventListener("click", (event) => {
   const rect = canvas.getBoundingClientRect();
   const mouseX = event.clientX - rect.left;
   const mouseY = event.clientY - rect.top;
 
-  buttons.forEach(button => {
-    if (mouseX >= button.x && mouseX <= button.x + button.width &&
-        mouseY >= button.y && mouseY <= button.y + button.height) {
-      
-     
-
-      
+  buttons.forEach((button) => {
+    if (
+      mouseX >= button.x &&
+      mouseX <= button.x + button.width &&
+      mouseY >= button.y &&
+      mouseY <= button.y + button.height
+    ) {
       if (button.label === "Bubble Sort") {
-        algorithmVisualizer('bubbleSort', scaledList, delayMS);
+        algorithmVisualizer("bubbleSort", scaledList, delayMS);
       } else if (button.label === "Quick Sort") {
-        algorithmVisualizer('quickSort', scaledList, delayMS);
+        algorithmVisualizer("quickSort", scaledList, delayMS);
       } else if (button.label === "Radix Sort") {
-        algorithmVisualizer('radixSort', scaledList, delayMS)
-      } else if (button.label === "Reset List") {
+        algorithmVisualizer("radixSort", scaledList, delayMS);
+      } else if (button.label === "Shuffle List") {
         location.reload();
       }
     }
@@ -391,53 +407,46 @@ class functionTimer {
 
 const timer = new functionTimer();
 
-
-
-
-
-
 async function algorithmVisualizer(algorithm, list, delayMS = 100) {
-    swapCount = 0; // Reset stats
-    stepCount = 0;
-    timer.start();
-    if (!isSorting) { // if active
-      isSorting = true
+  swapCount = 0; // Reset stats
+  stepCount = 0;
+  timer.start();
+  if (!isSorting) {
+    // if active
+    isSorting = true;
 
-      if (algorithm === 'bubbleSort') {
-          await bubbleSort(list, delayMS);
-      } else if (algorithm === 'quickSort') {
-          await quickSort(list, 0, list.length - 1, delayMS);
-      } else if (algorithm === "radixSort") {
-        await radixSort(list, delayMS)
-      }
-      
-      functionTime = timer.stop();
-      await verifySort(list); // Wait for the animation to finish
-
-      isSorting = false
-
+    if (algorithm === "bubbleSort") {
+      await bubbleSort(list, delayMS);
+    } else if (algorithm === "quickSort") {
+      await quickSort(list, 0, list.length - 1, delayMS);
+    } else if (algorithm === "radixSort") {
+      await radixSort(list, delayMS);
     }
+
+    functionTime = timer.stop();
+    await verifySort(list); // Wait for the animation to finish
+
+    isSorting = false;
+  }
 }
 
 async function verifySort(list) {
   // set all blocks to gray
-  stateList.fill("unsorted")
-  drawBlocks(list, stateList)
+  stateList.fill("unsorted");
+  drawBlocks(list, stateList);
 
-  for (let i=0; i<stateList.length; i++) {
-    stateList[i] ="sorted"
-    drawBlocks(list, stateList)
-    await delay(1000/list.length) // 1 second total verify time
+  for (let i = 0; i < stateList.length; i++) {
+    stateList[i] = "sorted";
+    drawBlocks(list, stateList);
+    await delay(1000 / list.length); // 1 second total verify time
   }
 
-  stateList.fill("bright")
-  drawBlocks(list, stateList)
-  await delay(250)
-  stateList.fill("sorted")
-  drawBlocks(list, stateList)
+  stateList.fill("bright");
+  drawBlocks(list, stateList);
+  await delay(250);
+  stateList.fill("sorted");
+  drawBlocks(list, stateList);
 }
 
-
-drawBlocks(scaledList, stateList)
+drawBlocks(scaledList, stateList);
 drawMenu();
-
