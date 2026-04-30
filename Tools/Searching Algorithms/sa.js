@@ -1,4 +1,5 @@
-import { getDigit, mostDigits, digitCount } from "./saHelpers.js";
+import { getDigit, mostDigits } from "./saHelpers.js";
+import { shuffle, isSorted } from "./saHelpers.js";
 
 const canvas = document.getElementById("canvas");
 const viewPortWidth = document.documentElement.clientWidth;
@@ -10,7 +11,7 @@ canvas.width = viewPortWidth;
 canvas.height = viewPortHeight;
 const textFontSize = Math.max(12, Math.min(viewPortWidth / 65, 25));
 
-const listLength = 152;
+const listLength = 1100;
 const listMin = 1;
 const listMax = 1000;
 
@@ -27,9 +28,10 @@ const maxBlockHeight = 143;
 const blockWidth = (60 * vw) / unsortedList.length;
 const blockFontSize = viewPortWidth/ 150;
 
-let delayMS = 5;
+let delayMS = 1;
 let swapCount = 0;
 let stepCount = 0;
+
 
 class Button {
   constructor(x, y, width, height, label, color) {
@@ -71,8 +73,10 @@ const buttons = [
   new Button(62 * vw, 32 * vh, 150, 50, "Bubble Sort", "#4ade80"),
   new Button(62 * vw, 40 * vh, 150, 50, "Quick Sort", "#60a5fa"),
   new Button(62 * vw, 48 * vh, 150, 50, "Radix Sort", "#bd1eccff"),
+  new Button(62 * vw, 56 * vh, 150, 50, "Bogo Sort", "#6e0977ff"),
 
-  new Button(82 * vw, 52 * vh, 150, 50, "Shuffle List", "#ec4545ff"),
+
+  new Button(82 * vw, 52 * vh, 150, 50, "Reset List", "#ec4545ff"),
 ];
 
 function delay(ms) {
@@ -222,31 +226,24 @@ async function radixSort(list, delayMS = 100) {
   }
 }
 
-/*
-async function quickSort(list, delayMS = 100) {
-  const len = list.length
-
-  if (len <= 1) {
-    return list
-  }
-  
-  const p = list[len - 1]
-
-  const leftArr = []
-  const rightArr = []
-  for (let i = 0; i < len - 1; i++){
-    if (list[i] <= p) {
-      leftArr.push(list[i])
-    } else {
-      rightArr.push(list[i])
-    }
-
-    drawBlocks([...leftArr, ...rightArr])
+async function bogoSort(list, delayMS = 100) {
+  while (!isSorted(list)) {
+    shuffle(list)
+    drawBlocks(list, stateList)
+    stepCount++
     await delay(delayMS)
   }
-  return [...quickSort(leftArr), p,  ...quickSort(rightArr)]
+  return list
 }
-*/
+
+async function selectionSort(list, delay) {
+
+}
+
+
+
+
+
 
 function scaleList(list, destination = []) {
   destination.length = 0;
@@ -288,6 +285,7 @@ function drawBlocks(list, states = []) {
       blockWidth,
       -blockHeight,
     );
+    ctx.color = "red"
 
     // border
     ctx.strokeStyle = "black";
@@ -298,6 +296,8 @@ function drawBlocks(list, states = []) {
       blockHeight,
     );
 
+
+
     ctx.fillStyle = "black";
     ctx.font = `${blockFontSize}px Arial`;
     // count by 1's when less than 100
@@ -305,16 +305,22 @@ function drawBlocks(list, states = []) {
       // index label
       ctx.fillText(
         i + 1,
-        blockWidth * i + blockFontSize,
+        blockWidth * i + blockWidth/2  -2 ,
         canvas.height - 2 * vh,
       ); // else count's by 10's, 100's, ect...
-    } else if ((i + 1) % 10 == 0) {
+    } else if ((i + 1) % 10 == 0 && list.length < 500) { // if divisible by 10 draw but only under 500
       ctx.fillText(
         i + 1,
-        blockWidth * i - blockFontSize ,
+        blockWidth * (i) + blockFontSize / 2 -3,
         canvas.height - 2 * vh,
       );
-      
+    } else if ((i+1) % 100 == 0 && i ) { // if divisile by 100 
+      ctx.fillText(
+        i + 1,
+        blockWidth * (i) + blockFontSize / 2 -3,
+        canvas.height - 2 * vh,
+      );
+
     }
       
   }
@@ -380,7 +386,9 @@ canvas.addEventListener("click", (event) => {
         algorithmVisualizer("quickSort", scaledList, delayMS);
       } else if (button.label === "Radix Sort") {
         algorithmVisualizer("radixSort", scaledList, delayMS);
-      } else if (button.label === "Shuffle List") {
+      } else if (button.label === "Bogo Sort") {
+        algorithmVisualizer("bogoSort", scaledList, delayMS);
+      } else if (button.label === "Reset List") {
         location.reload();
       }
     }
@@ -408,10 +416,12 @@ class functionTimer {
 const timer = new functionTimer();
 
 async function algorithmVisualizer(algorithm, list, delayMS = 100) {
-  swapCount = 0; // Reset stats
-  stepCount = 0;
+
+  if (isSorting) return
+
   timer.start();
-  if (!isSorting) {
+    swapCount = 0; // Reset stats
+    stepCount = 0;
     // if active
     isSorting = true;
 
@@ -421,13 +431,14 @@ async function algorithmVisualizer(algorithm, list, delayMS = 100) {
       await quickSort(list, 0, list.length - 1, delayMS);
     } else if (algorithm === "radixSort") {
       await radixSort(list, delayMS);
+    } else if (algorithm === "bogoSort") {
+      await bogoSort(list, delayMS)
     }
 
     functionTime = timer.stop();
     await verifySort(list); // Wait for the animation to finish
 
     isSorting = false;
-  }
 }
 
 async function verifySort(list) {
@@ -443,7 +454,7 @@ async function verifySort(list) {
 
   stateList.fill("bright");
   drawBlocks(list, stateList);
-  await delay(250);
+  await delay(400);
   stateList.fill("sorted");
   drawBlocks(list, stateList);
 }
