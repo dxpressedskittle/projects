@@ -38,6 +38,8 @@ let tileWidth = viewPortWidth / defaultGrid[0].length;
 let tileHeight = viewPortHeight / defaultGrid.length;
 
 const crowdSize = 50 // 50% of max
+const turnSpeed = 0.05
+const wheelBase = 2.5 // width of wheel (maybe change later to add to car class)
 
 class Spectator {
   constructor(x, y) {
@@ -81,20 +83,21 @@ class Map {
     this.tileGrid = tileGrid;
   }
   drawMap() {
-    let xOffset = tileWidth / 2;
-    let yOffset = tileHeight / 2;
     this.tileGrid.forEach((row, rowIndex) => {
       row.forEach((tile, colIndex) => {
         if (tile === 0 || tile === 1) {
           // Different terrain types
-          ctx.fillStyle = "green";
+          ctx.fillStyle = "black";
           ctx.fillRect(
-            colIndex * tileWidth,
-            rowIndex * tileHeight,
-            tileWidth,
-            tileHeight,
+            colIndex * tileWidth, rowIndex * tileHeight, tileWidth, tileHeight,
           );
         }
+
+          ctx.fillStyle = "green";
+          ctx.fillRect(
+            colIndex * tileWidth+0.25, rowIndex * tileHeight+0.25, tileWidth, tileHeight,
+          );
+
       });
     });
 
@@ -109,43 +112,131 @@ class Map {
 }
 
 class Car {
-  constructor(x, y, height, width , power, grip, color,  speed, rotation){ 
+  constructor(x, y, power, grip, color,  speed, rotation){ 
   this.color = color 
-  this.height = height
-  this.width = width 
   this.power = power // speed of engine
-  this.grip = grip // between 0-1, 0.01 being most slipper
+  this.grip = grip // between 0-1, 0.01 being most slippery
   this.x = x,
   this.y = y
-  this.speed = speed //current speed of car
+  this.speed = speed // current speed of car
   this.angle = rotation
+  this.velX = 0;
+  this.velY = 0;
+  this.steeringAngle = 0 // agle of steering wheel
+  this.speedInput = 0 // (how fast you want to go)
 
+  this.model = new Image()
+  this.model.src = '/Games/Drift 2D/models/car_models/sports2.png'
+  this.isLoaded = false 
+  this.model.addEventListener('load', () => {
+    this.isLoaded = true 
+  })
   }
 
   drawCar() {
+  if (!this.isLoaded) return
   ctx.save();
-  ctx.translate(this.x, this.y); //rotates canvas then draws
-  ctx.rotate(this.angle);
-  ctx.fillStyle = this.color;
-  ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
-  ctx.restore(); // unrotates canvas so only cars are rotated.
+  ctx.translate(this.x, this.y); 
+  ctx.rotate(Math.PI / 2); // rotate by 90 to account for pngs
+  ctx.rotate(this.angle); //rotates canvas then draws
+  ctx.drawImage(this.model, -this.width / 2, -this.height / 2);
+  ctx.restore(); // unrotates canvas so only cars are rotated. 
+  
+
 }
 
-  update() {
-     let dragCoefficient = 0.98 - (this.grip * 0.15); 
-    this.speed *= dragCoefficient;
-    console.log(dragCoefficient)
-    this.x += Math.cos(this.angle) * this.speed;
-    this.y += Math.sin(this.angle) * this.speed;
+update() {
+if (controller["w"]) {
+    this.speedInput += this.power;
+}
+if (controller["s"]) {
+    this.speedInput -= this.power;
+}
 
-    if (controller["w"]) {
-      this.speed += this.power
-    } else if (controller["s"]) {
-      this.speed -= this.power
-    } else if (controller["a"]) {
-      this.angle += 1
+// Clamp input speed (e.g., max forward/backward speed before physics apply)
+  const maxSpeed = 5;
+    const currentSpeed = Math.sqrt(this.velX ** 2 + this.velY ** 2);
+    
+    if (currentSpeed > maxSpeed) {
+        // Normalize velocity vector and scale to maxSpeed
+        const scale = maxSpeed / currentSpeed;
+        this.velX *= scale;
+        this.velY *= scale;
     }
+
+// Calculate rotation speed based on steering angle
+if (this.speed > 0) {
+  let rotationSpeed = turnSpeed * Math.PI / 180;
+  if (controller["a"]) {
+      this.steeringAngle -= rotationSpeed;
   }
+  if (controller["d"]) {
+      this.steeringAngle += rotationSpeed;
+  }
+}
+
+// Clamp steering angle to prevent over-steering (e.g., +/- 45 degrees)
+const maxSteering = Math.PI / 4; // ~45 degrees
+this.steeringAngle = Math.max(-maxSteering, Math.min(maxSteering, this.steeringAngle));
+
+// spring steering wheel back to 0 when no input
+if (!controller["a"] && !controller["d"]) {
+    let returnSpeed = 0.001; // Adjust for how fast the wheel centers
+    if (this.steeringAngle > 0) {
+        this.steeringAngle -= returnSpeed;
+        if (this.steeringAngle < 0) this.steeringAngle = 0; // Prevent overshoot
+    } else if (this.steeringAngle < 0) {
+        this.steeringAngle += returnSpeed;
+        if (this.steeringAngle > 0) this.steeringAngle = 0; // Prevent overshoot
+    }
+}
+
+// 3. Turn Radius & Angular Velocity
+const tanVal = Math.tan(this.steeringAngle);
+let turnRadius;
+
+if (Math.abs(tanVal) < 0.001) {
+    // If steering is nearly 0, radius is effectively infinite (no rotation)
+    turnRadius = Infinity; 
+} else {
+    turnRadius = wheelBase / tanVal;
+}
+
+// Calculate angular velocity (how fast the car rotates)
+let angularVelocity = 0;
+if (turnRadius !== Infinity && Math.abs(turnRadius) > 0) {
+    // Use actual speed (from velocity vector) to determine rotation speed
+    const currentSpeed = Math.sqrt((this.velX**2) + (this.velY**2));
+    angularVelocity = currentSpeed / turnRadius;
+}
+
+// Apply rotation to car angle
+this.angle += angularVelocity;
+
+let intendedVelX = Math.cos(this.angle) * this.speedInput;
+let intendedVelY = Math.sin(this.angle) * this.speedInput;
+
+// drag + Grip 
+let drag = 0.98; // Base air resistance
+this.velX *= drag;
+this.velY *= drag;
+
+// Calculate Lerp Factor (0.0 = no traction, 1.0 = full grip)
+// Multiplier (0.2) controls how snappy the grip feels
+let lerpFactor = this.grip * 0.2;
+
+// Blend current velocity with intended velocity
+this.velX = this.velX + (intendedVelX - this.velX) * lerpFactor;
+this.velY = this.velY + (intendedVelY - this.velY) * lerpFactor;
+
+this.x += this.velX;
+this.y += this.velY;
+
+
+this.speed = Math.sqrt((this.velX**2) + (this.velY**2));
+
+console.log("X:", this.x.toFixed(2), "Y:", this.y.toFixed(2), "Speed:", this.speed.toFixed(2), "Steering angle:", this.steeringAngle.toFixed(2), "speed input:", this.speedInput);
+}
 }
 
 let mapInstance = new Map(defaultGrid);
@@ -182,7 +273,15 @@ function draw() {
 
 }
 
-const myCar = new Car(200,200, 80, 150, 0.5,0.01, "red", 0, 24);
+let x = 200
+let y = 200
+let power = 100
+let grip = 0.01
+let color = "red"
+let speed = 0 
+let rotation = 24
+
+const myCar = new Car(x,y,power,grip,color,speed,rotation);
 myCar.speed = 0;
 myCar.angle = 180; // 45 degrees
 
