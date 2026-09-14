@@ -89,19 +89,24 @@ let heldPieceIndex = null;
 function drawBoard() {
   for (let i = 0; i < 8; i++) {
     // row
+    ctx.fillStyle = "black"
+    ctx.font = "14px Arial";
+
+    ctx.fillText(i+1, boardXOffset - blockSize / 2, i * blockSize + boardYOffset + blockSize / 2); // Draw row numbers
     for (let j = 0; j < 8; j++) {
       // column
       const x = j * blockSize + boardXOffset;
       const y = i * blockSize + boardYOffset;
 
       if ((i + j) % 2 !== 0) {
-        ctx.fillStyle = "#769656";
+        ctx.fillStyle = "#773F1A";
       } else {
-        ctx.fillStyle = "#eeeed2";
+        ctx.fillStyle = "#E5C4A1";
       }
       ctx.fillRect(x, y, blockSize, blockSize);
     }
   }
+  
 }
 
 function drawPieces() {
@@ -138,11 +143,17 @@ function drawPieces() {
   }
 }
 
-function dragPiece(startIndex, toIndex) {
-  if (startIndex !== null && board[startIndex]) {
-    board[toIndex] = board[startIndex];
-    board[startIndex] = null;
+function dragPiece(startIndex, targetIndex) {
+  const piece = board[startIndex];
+
+  if (!piece || !isLegalMove(piece, startIndex, targetIndex) || startIndex === targetIndex) {
+    return;
   }
+
+  board[targetIndex] = piece;
+  board[startIndex] = null;
+  console.log(`Moved ${piece} from index ${startIndex} to index ${targetIndex}`);
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
   drawPieces();
@@ -159,6 +170,152 @@ function getBoardIndex(x, y) {
   }
 }
 
+function isLegalMove(piece, startIndex, targetIndex) {
+  const moveFunctions = {
+    p: isPawnLegalMove,
+    r: isRookLegalMove,
+    n: isKnightLegalMove,
+    b: isBishopLegalMove,
+    q: isQueenLegalMove,
+    k: isKingLegalMove,
+  };
+
+  const moveFunction = moveFunctions[piece[1]];
+  return moveFunction ? moveFunction(startIndex, targetIndex, piece) : false;
+}
+
+function getPosition(index) {
+  return {
+    row: Math.floor(index / 8),
+    col: index % 8,
+  };
+}
+
+function isTargetAvailable(piece, targetIndex) {
+  const targetPiece = board[targetIndex];
+  return !targetPiece || targetPiece[0] !== piece[0];
+}
+
+function checkPath(startIndex, targetIndex) {
+  const start = getPosition(startIndex);
+  const target = getPosition(targetIndex);
+
+  const rowDiff = target.row - start.row;
+  const colDiff = target.col - start.col;
+
+  const rowStep = rowDiff === 0 ? 0 : rowDiff / Math.abs(rowDiff);
+  const colStep = colDiff === 0 ? 0 : colDiff / Math.abs(colDiff);
+
+  let currentRow = start.row + rowStep;
+  let currentCol = start.col + colStep;
+
+  while (currentRow !== target.row || currentCol !== target.col) {
+    const currentIndex = currentRow * 8 + currentCol;
+    if (board[currentIndex]) {
+      return false;
+    }
+    currentRow += rowStep;
+    currentCol += colStep;
+  }
+
+  return true;
+}
+
+function isPawnLegalMove(startIndex, targetIndex, piece) {
+  const start = getPosition(startIndex);
+  const target = getPosition(targetIndex);
+
+  const rowDiff = target.row - start.row;
+  const colDiff = target.col - start.col;
+  const direction = piece[0] === "w" ? -1 : 1;
+  const startingRow = piece[0] === "w" ? 6 : 1;
+
+  if (colDiff === 0 && !board[targetIndex]) {
+    const canMoveOne = rowDiff === direction;
+    const canMoveTwo = rowDiff === direction * 2 && start.row === startingRow;
+
+    if (canMoveOne || (canMoveTwo && !board[startIndex + direction * 8])) {
+      return true;
+    }
+  }
+
+  const targetPiece = board[targetIndex];
+  const canCapture = targetPiece && targetPiece[0] !== piece[0];
+
+  return Math.abs(colDiff) === 1 && rowDiff === direction && canCapture;
+}
+
+function isRookLegalMove(startIndex, targetIndex, piece) {
+  const start = getPosition(startIndex);
+  const target = getPosition(targetIndex);
+  const movesStraight = start.row === target.row || start.col === target.col;
+
+  return movesStraight && checkPath(startIndex, targetIndex) && isTargetAvailable(piece, targetIndex);
+}
+
+function isKnightLegalMove(startIndex, targetIndex, piece) {
+  const start = getPosition(startIndex);
+  const target = getPosition(targetIndex);
+  const rowDiff = Math.abs(target.row - start.row);
+  const colDiff = Math.abs(target.col - start.col);
+
+  return (
+    (rowDiff === 2 && colDiff === 1) ||
+    (rowDiff === 1 && colDiff === 2)
+  ) && isTargetAvailable(piece, targetIndex);
+}
+
+function isBishopLegalMove(startIndex, targetIndex, piece) {
+  const start = getPosition(startIndex);
+  const target = getPosition(targetIndex);
+  const movesDiagonally = Math.abs(target.row - start.row) === Math.abs(target.col - start.col);
+
+  return movesDiagonally && checkPath(startIndex, targetIndex) && isTargetAvailable(piece, targetIndex);
+}
+
+function isQueenLegalMove(startIndex, targetIndex, piece) {
+  return isRookLegalMove(startIndex, targetIndex, piece) || isBishopLegalMove(startIndex, targetIndex, piece);
+}
+
+function isKingLegalMove(startIndex, targetIndex, piece) {
+  const start = getPosition(startIndex);
+  const target = getPosition(targetIndex);
+  const rowDiff = Math.abs(target.row - start.row);
+  const colDiff = Math.abs(target.col - start.col);
+
+  return rowDiff <= 1 && colDiff <= 1 && isTargetAvailable(piece, targetIndex);
+}
+
+function previewPossibleMoves(index) {
+  const piece = board[index];
+  if (!piece) return;
+
+  const possibleMoves = [];
+
+  for (let targetIndex = 0; targetIndex < 64; targetIndex++) {
+    if (isLegalMove(piece, index, targetIndex)) {
+      possibleMoves.push(targetIndex);
+    }
+  }
+
+  // Highlights all possible moves for selected piece
+  possibleMoves.forEach((targetIndex) => {
+    const row = Math.floor(targetIndex / 8);
+    const col = targetIndex % 8;
+    const x = col * blockSize + boardXOffset;
+    const y = row * blockSize + boardYOffset;
+
+    ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
+    ctx.fillRect(x, y, blockSize, blockSize);
+  });
+}
+
+function clearHighlights() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBoard();
+  drawPieces();
+}
+
 canvas.addEventListener("mousedown", (event) => {
   const rect = canvas.getBoundingClientRect();
   const clickX = event.clientX - rect.left;
@@ -169,6 +326,8 @@ canvas.addEventListener("mousedown", (event) => {
   if (heldPieceIndex === null || heldPieceIndex === "Out of bounds") {
     heldPieceIndex = null;
   }
+
+  previewPossibleMoves(heldPieceIndex);
 });
 
 canvas.addEventListener("mouseup", (event) => {
@@ -185,6 +344,8 @@ canvas.addEventListener("mouseup", (event) => {
   }
   
   heldPieceIndex = null; 
+  
+  clearHighlights();
 });
 
 drawBoard();
