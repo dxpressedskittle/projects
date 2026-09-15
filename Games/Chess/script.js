@@ -16,7 +16,7 @@ const blockSize = boardSize / 8;
 const boardXOffset = (viewPortWidth - boardSize) / 2; // Center horizontally
 const boardYOffset = (viewPortHeight - boardSize) / 2; // Center vertically
 
-const board = [
+let board = [
   "br",
   "bn",
   "bb",
@@ -83,16 +83,20 @@ const board = [
   "wr",
 ];
 
-let heldPieceIndex = null; 
-
+let heldPieceIndex = null;
+let playerTurn = "white";
 
 function drawBoard() {
   for (let i = 0; i < 8; i++) {
     // row
-    ctx.fillStyle = "black"
+    ctx.fillStyle = "black";
     ctx.font = "14px Arial";
 
-    ctx.fillText(i+1, boardXOffset - blockSize / 2, i * blockSize + boardYOffset + blockSize / 2); // Draw row numbers
+    ctx.fillText(
+      i + 1,
+      boardXOffset - blockSize / 2,
+      i * blockSize + boardYOffset + blockSize / 2,
+    ); // Draw row numbers
     for (let j = 0; j < 8; j++) {
       // column
       const x = j * blockSize + boardXOffset;
@@ -106,7 +110,6 @@ function drawBoard() {
       ctx.fillRect(x, y, blockSize, blockSize);
     }
   }
-  
 }
 
 function drawPieces() {
@@ -146,13 +149,25 @@ function drawPieces() {
 function dragPiece(startIndex, targetIndex) {
   const piece = board[startIndex];
 
-  if (!piece || !isLegalMove(piece, startIndex, targetIndex) || startIndex === targetIndex) {
+  if (
+    !piece ||
+    !isLegalMove(piece, startIndex, targetIndex) ||
+    startIndex === targetIndex
+  ) {
+    return;
+  }
+
+  if (
+    (piece.startsWith("w") && playerTurn === "black") ||
+    (piece.startsWith("b") && playerTurn === "white")
+  ) {
     return;
   }
 
   board[targetIndex] = piece;
   board[startIndex] = null;
-  console.log(`Moved ${piece} from index ${startIndex} to index ${targetIndex}`);
+
+  swapTurn();
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
@@ -181,10 +196,21 @@ function isLegalMove(piece, startIndex, targetIndex) {
   };
 
   const moveFunction = moveFunctions[piece[1]];
-  return moveFunction ? moveFunction(startIndex, targetIndex, piece) : false;
+  return moveFunction ? moveFunction(startIndex, targetIndex, piece) : false; // sends out move function to set piece
+}
+
+function swapTurn() {
+  if (playerTurn === "white") {
+    playerTurn = "black";
+  } else {
+    playerTurn = "white";
+  }
+  board = board.toReversed(); // switch board so other color is on bottom
+  console.log(board);
 }
 
 function getPosition(index) {
+  // calculates row and col from index
   return {
     row: Math.floor(index / 8),
     col: index % 8,
@@ -222,13 +248,22 @@ function checkPath(startIndex, targetIndex) {
 }
 
 function isPawnLegalMove(startIndex, targetIndex, piece) {
+  let direction;
+  let startingRow;
+
   const start = getPosition(startIndex);
   const target = getPosition(targetIndex);
 
   const rowDiff = target.row - start.row;
   const colDiff = target.col - start.col;
-  const direction = piece[0] === "w" ? -1 : 1;
-  const startingRow = piece[0] === "w" ? 6 : 1;
+
+  if (playerTurn === "black") {
+    direction = piece[0] === "b" ? -1 : 1;
+    startingRow = piece[0] === "w" ? 1 : 6;
+  } else if (playerTurn === "white") {
+    direction = piece[0] === "w" ? -1 : 1;
+    startingRow = piece[0] === "w" ? 6 : 1;
+  }
 
   if (colDiff === 0 && !board[targetIndex]) {
     const canMoveOne = rowDiff === direction;
@@ -250,7 +285,11 @@ function isRookLegalMove(startIndex, targetIndex, piece) {
   const target = getPosition(targetIndex);
   const movesStraight = start.row === target.row || start.col === target.col;
 
-  return movesStraight && checkPath(startIndex, targetIndex) && isTargetAvailable(piece, targetIndex);
+  return (
+    movesStraight &&
+    checkPath(startIndex, targetIndex) &&
+    isTargetAvailable(piece, targetIndex)
+  );
 }
 
 function isKnightLegalMove(startIndex, targetIndex, piece) {
@@ -260,21 +299,29 @@ function isKnightLegalMove(startIndex, targetIndex, piece) {
   const colDiff = Math.abs(target.col - start.col);
 
   return (
-    (rowDiff === 2 && colDiff === 1) ||
-    (rowDiff === 1 && colDiff === 2)
-  ) && isTargetAvailable(piece, targetIndex);
+    ((rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2)) &&
+    isTargetAvailable(piece, targetIndex)
+  );
 }
 
 function isBishopLegalMove(startIndex, targetIndex, piece) {
   const start = getPosition(startIndex);
   const target = getPosition(targetIndex);
-  const movesDiagonally = Math.abs(target.row - start.row) === Math.abs(target.col - start.col);
+  const movesDiagonally =
+    Math.abs(target.row - start.row) === Math.abs(target.col - start.col);
 
-  return movesDiagonally && checkPath(startIndex, targetIndex) && isTargetAvailable(piece, targetIndex);
+  return (
+    movesDiagonally &&
+    checkPath(startIndex, targetIndex) &&
+    isTargetAvailable(piece, targetIndex)
+  );
 }
 
 function isQueenLegalMove(startIndex, targetIndex, piece) {
-  return isRookLegalMove(startIndex, targetIndex, piece) || isBishopLegalMove(startIndex, targetIndex, piece);
+  return (
+    isRookLegalMove(startIndex, targetIndex, piece) ||
+    isBishopLegalMove(startIndex, targetIndex, piece)
+  );
 }
 
 function isKingLegalMove(startIndex, targetIndex, piece) {
@@ -286,6 +333,35 @@ function isKingLegalMove(startIndex, targetIndex, piece) {
   return rowDiff <= 1 && colDiff <= 1 && isTargetAvailable(piece, targetIndex);
 }
 
+function findKing(color) {
+  for (x = 0; x < 64; x++) {
+    if (board[x]) {
+      if (board[x].startsWith(`${color}k`)) {
+        return x;
+      }
+    }
+  }
+}
+
+function isPlayerInCheck(color) {
+  const kingIndex = findKing(color);
+
+  unsafeIndexes = []
+  for (let i=0; i<64; i++) {
+    const piece = board[i]
+    if (!piece) {continue;} // if null
+
+    for (let x=0; x<64; x++) {
+      if (i === x) {continue} // dont check on own square
+      if (isLegalMove(piece, i, x)) {
+        unsafeIndexes.push(x)
+      }
+    }
+  }
+
+  console.log(unsafeIndexes)
+}
+
 function previewPossibleMoves(index) {
   const piece = board[index];
   if (!piece) return;
@@ -294,6 +370,12 @@ function previewPossibleMoves(index) {
 
   for (let targetIndex = 0; targetIndex < 64; targetIndex++) {
     if (isLegalMove(piece, index, targetIndex)) {
+      if (
+        (piece.startsWith("w") && playerTurn === "black") ||
+        (piece.startsWith("b") && playerTurn === "white")
+      ) {
+        return;
+      }
       possibleMoves.push(targetIndex);
     }
   }
@@ -326,6 +408,7 @@ canvas.addEventListener("mousedown", (event) => {
   if (heldPieceIndex === null || heldPieceIndex === "Out of bounds") {
     heldPieceIndex = null;
   }
+  console.log(heldPieceIndex);
 
   previewPossibleMoves(heldPieceIndex);
 });
@@ -340,11 +423,11 @@ canvas.addEventListener("mouseup", (event) => {
   if (heldPieceIndex !== null && targetIndex !== "Out of bounds") {
     dragPiece(heldPieceIndex, targetIndex);
   } else if (targetIndex === "Out of bounds") {
-    console.log("Out of bounds")
+    console.log("Out of bounds");
   }
-  
-  heldPieceIndex = null; 
-  
+
+  heldPieceIndex = null;
+
   clearHighlights();
 });
 
