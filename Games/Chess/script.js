@@ -86,17 +86,25 @@ let board = [
 let heldPieceIndex = null;
 let playerTurn = "white";
 
+
+// Sound variables
+
+const checkSound = new Audio("UI sounds/move-check.wav")
+const captureSound = new Audio("UI sounds/capture.wav")
+const illegalMoveSound = new Audio("UI sounds/illegal.wav")
+const promoteSound = new Audio("UI sounds/promote.wav")
+const castleSound = new Audio("UI sounds/castle.wav")
+const gameEndSound = new Audio("UI sounds/game-end.wav")
+const gameStartSound = new Audio("UI sounds/game-start.wav")
+
+
 function drawBoard() {
   for (let i = 0; i < 8; i++) {
     // row
     ctx.fillStyle = "black";
-    ctx.font = "14px Arial";
+    
 
-    ctx.fillText(
-      i + 1,
-      boardXOffset - blockSize / 2,
-      i * blockSize + boardYOffset + blockSize / 2,
-    ); // Draw row numbers
+    
     for (let j = 0; j < 8; j++) {
       // column
       const x = j * blockSize + boardXOffset;
@@ -108,6 +116,11 @@ function drawBoard() {
         ctx.fillStyle = "#E5C4A1";
       }
       ctx.fillRect(x, y, blockSize, blockSize);
+      
+      ctx.font = "14px Arial";
+      ctx.fillText(
+      i + 1, boardXOffset, i * blockSize + boardYOffset + blockSize, // FIX LATER : text moves places when board is clicked. keep working on sound
+      ); // Draw row numbers
     }
   }
 }
@@ -167,6 +180,12 @@ function dragPiece(startIndex, targetIndex) {
   board[targetIndex] = piece;
   board[startIndex] = null;
 
+  if (isPlayerInCheck("b")) {
+    checkSound.play()
+  } else if (isPlayerInCheck("w")) {
+    checkSound.play()
+  }
+
   swapTurn();
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -206,7 +225,6 @@ function swapTurn() {
     playerTurn = "white";
   }
   board = board.toReversed(); // switch board so other color is on bottom
-  console.log(board);
 }
 
 function getPosition(index) {
@@ -344,23 +362,23 @@ function findKing(color) {
 }
 
 function isPlayerInCheck(color) {
-  const kingIndex = findKing(color);
+    const kingIndex = findKing(color);
+    const enemyColor = color === 'white' ? 'b' : 'w';
 
-  unsafeIndexes = []
-  for (let i=0; i<64; i++) {
-    const piece = board[i]
-    if (!piece) {continue;} // if null
+    for (let i = 0; i < 64; i++) {
+        const piece = board[i];
 
-    for (let x=0; x<64; x++) {
-      if (i === x) {continue} // dont check on own square
-      if (isLegalMove(piece, i, x)) {
-        unsafeIndexes.push(x)
-      }
-    }
-  }
-
-  console.log(unsafeIndexes)
+        // Only check pieces that belong to the opponent
+        if (piece && piece.startsWith(enemyColor)) { 
+            // Check if this enemy piece can attack the kings square 
+            if (isLegalMove(piece, i, kingIndex)) { 
+                return true; 
+            } 
+        } 
+    } 
+    return false; 
 }
+
 
 function previewPossibleMoves(index) {
   const piece = board[index];
@@ -408,7 +426,6 @@ canvas.addEventListener("mousedown", (event) => {
   if (heldPieceIndex === null || heldPieceIndex === "Out of bounds") {
     heldPieceIndex = null;
   }
-  console.log(heldPieceIndex);
 
   previewPossibleMoves(heldPieceIndex);
 });
@@ -423,7 +440,7 @@ canvas.addEventListener("mouseup", (event) => {
   if (heldPieceIndex !== null && targetIndex !== "Out of bounds") {
     dragPiece(heldPieceIndex, targetIndex);
   } else if (targetIndex === "Out of bounds") {
-    console.log("Out of bounds");
+    console.log("Piece dragged out of bounds");
   }
 
   heldPieceIndex = null;
