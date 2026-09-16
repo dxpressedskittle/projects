@@ -82,29 +82,31 @@ let board = [
   "wn",
   "wr",
 ];
+let boardIsFlipped = false;
 
 let heldPieceIndex = null;
 let playerTurn = "white";
 
+const whitePremoves = [];
+const blackPremoves = [];
 
 // Sound variables
 
-const checkSound = new Audio("UI sounds/move-check.wav")
-const captureSound = new Audio("UI sounds/capture.wav")
-const illegalMoveSound = new Audio("UI sounds/illegal.wav")
-const promoteSound = new Audio("UI sounds/promote.wav")
-const castleSound = new Audio("UI sounds/castle.wav")
-const gameEndSound = new Audio("UI sounds/game-end.wav")
-const gameStartSound = new Audio("UI sounds/game-start.wav")
-
+const checkSound = new Audio("UI sounds/move-check.wav");
+const moveSound = new Audio("UI sounds/move-self.wav");
+const captureSound = new Audio("UI sounds/capture.wav");
+const illegalMoveSound = new Audio("UI sounds/illegal.wav");
+const promoteSound = new Audio("UI sounds/promote.wav");
+const castleSound = new Audio("UI sounds/castle.wav");
+const gameEndSound = new Audio("UI sounds/game-end.wav");
+const gameStartSound = new Audio("UI sounds/game-start.wav");
+const chessPieceDown = new Audio("UI sounds/chessPieceDown.wav");
 
 function drawBoard() {
   for (let i = 0; i < 8; i++) {
     // row
     ctx.fillStyle = "black";
-    
 
-    
     for (let j = 0; j < 8; j++) {
       // column
       const x = j * blockSize + boardXOffset;
@@ -116,10 +118,12 @@ function drawBoard() {
         ctx.fillStyle = "#E5C4A1";
       }
       ctx.fillRect(x, y, blockSize, blockSize);
-      
+
       ctx.font = "14px Arial";
       ctx.fillText(
-      i + 1, boardXOffset, i * blockSize + boardYOffset + blockSize, // FIX LATER : text moves places when board is clicked. keep working on sound
+        i + 1,
+        boardXOffset,
+        i * blockSize + boardYOffset + blockSize, // FIX LATER : text moves places when board is clicked. keep working on sound
       ); // Draw row numbers
     }
   }
@@ -167,6 +171,7 @@ function dragPiece(startIndex, targetIndex) {
     !isLegalMove(piece, startIndex, targetIndex) ||
     startIndex === targetIndex
   ) {
+    illegalMoveSound.play();
     return;
   }
 
@@ -181,14 +186,30 @@ function dragPiece(startIndex, targetIndex) {
   board[startIndex] = null;
 
   if (isPlayerInCheck("b")) {
-    checkSound.play()
+    if (isPlayerInCheckmate("b", "w")) {
+      gameEndSound.play(); // Checkmate
+    } else {
+      checkSound.play();
+    }
   } else if (isPlayerInCheck("w")) {
-    checkSound.play()
+    if (isPlayerInCheckmate("w", "b")) {
+      gameEndSound.play();
+    } else {
+      checkSound.play();
+    }
+  }
+  let pawnPromoted = checkPromotion(targetIndex)
+  console.log(pawnPromoted)
+  if (pawnPromoted) {
+    promotePawn(targetIndex, "wq")
+    pawnPromoted = false
   }
 
-  swapTurn();
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  swapTurn();
+  moveSound.play();
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // clears and redraws screen later put util for it to do it
   drawBoard();
   drawPieces();
 }
@@ -225,6 +246,11 @@ function swapTurn() {
     playerTurn = "white";
   }
   board = board.toReversed(); // switch board so other color is on bottom
+  if (boardIsFlipped) {
+    boardIsFlipped = false;
+  } else {
+    boardIsFlipped = true;
+  }
 }
 
 function getPosition(index) {
@@ -362,23 +388,97 @@ function findKing(color) {
 }
 
 function isPlayerInCheck(color) {
-    const kingIndex = findKing(color);
-    const enemyColor = color === 'white' ? 'b' : 'w';
+  const kingIndex = findKing(color);
+  const enemyColor = color === "white" ? "b" : "w";
 
-    for (let i = 0; i < 64; i++) {
-        const piece = board[i];
+  for (let i = 0; i < 64; i++) {
+    const piece = board[i];
 
-        // Only check pieces that belong to the opponent
-        if (piece && piece.startsWith(enemyColor)) { 
-            // Check if this enemy piece can attack the kings square 
-            if (isLegalMove(piece, i, kingIndex)) { 
-                return true; 
-            } 
-        } 
-    } 
-    return false; 
+    // Only check pieces that belong to the opponent
+    if (piece && piece.startsWith(enemyColor)) {
+      // Check if this enemy piece can attack the kings square
+      if (isLegalMove(piece, i, kingIndex)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
+function isPlayerInCheckmate(color, enemyColor) {
+  for (let i = 0; i < 64; i++) {
+    piece = board[i];
+
+    if (!piece || piece.startsWith(enemyColor)) {
+      // dont check moves if enemy or empty
+      continue;
+    }
+
+    for (let j = 0; j < 64; j++) {
+      if (i === j) {
+        continue;
+      }
+
+      if (isLegalMove(piece, i, j)) {
+        let tempPiece = board[j];
+        board[j] = board[i];
+        board[i] = null;
+
+        let stillInCheck = isPlayerInCheck(color);
+
+        board[i] = board[j];
+        board[j] = tempPiece;
+
+        if (!stillInCheck) {
+          return false;
+        }
+      }
+    }
+  }
+  pos = getPosition(findKing(color));
+  row = pos.row;
+  col = pos.col;
+
+  ctx.fillStyle = "light red";
+  ctx.fillRect(
+    row * blockSize + boardXOffset,
+    col * blockSize + boardYOffset,
+    blockSize,
+    blockSize,
+  );
+
+  return true;
+}
+
+function checkPromotion(index) {
+  let promoted = false 
+  const piece = board[index]
+  if (!piece || (piece !== "wp" && piece !== "bp")) return false
+
+  const row = Math.floor(index / 8);
+
+  
+  if (!boardIsFlipped) {
+
+    if (piece.startsWith("w") && row == 0) {
+      promoted = true;
+      
+    }
+  } else if (piece.startsWith("b") && row == 0) {
+        promoted = true;
+    }
+
+    return promoted
+  
+}
+
+function promotePawn(index, newPiece) {
+    board[index] = newPiece; // Replace pawn with new piece
+    promoteSound.play();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBoard();
+    drawPieces();
+}
 
 function previewPossibleMoves(index) {
   const piece = board[index];
