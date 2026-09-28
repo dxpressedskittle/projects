@@ -102,7 +102,26 @@ const gameEndSound = new Audio("UI sounds/game-end.wav");
 const gameStartSound = new Audio("UI sounds/game-start.wav");
 const chessPieceDown = new Audio("UI sounds/chessPieceDown.wav");
 
-const ws = new WebSocket("ws://localhost:3000/game")
+const ws = new WebSocket("ws://localhost:8080")
+
+function sendMove(roomCode, clientKey, color, piece, startRow, startCol, targetRow, targetCol) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+
+    const moveData = `${color}${piece}${startRow}${startCol}${targetRow}${targetCol}`;
+
+    const movePayload = {
+      room: roomCode,
+      client: clientKey,
+      message: "move",
+      data: moveData
+    };
+
+    ws.send(JSON.stringify(movePayload));
+  } else {
+    console.warn("Websocket not connected yet")
+  }
+}
+
 
 function drawBoard() {
   for (let i = 0; i < 8; i++) {
@@ -173,7 +192,7 @@ function dragPiece(startIndex, targetIndex) {
     !isLegalMove(piece, startIndex, targetIndex) ||
     startIndex === targetIndex
   ) {
-    illegalMoveSound.play();
+    //illegalMoveSound.play();
     return;
   }
 
@@ -209,7 +228,7 @@ function dragPiece(startIndex, targetIndex) {
 
 
   swapTurn();
-  moveSound.play();
+  // moveSound.play();
 
   ctx.clearRect(0, 0, canvas.width, canvas.height); // clears and redraws screen later put util for it to do it
   drawBoard();
@@ -380,7 +399,7 @@ function isKingLegalMove(startIndex, targetIndex, piece) {
 }
 
 function findKing(color) {
-  for (x = 0; x < 64; x++) {
+  for (let x = 0; x < 64; x++) {
     if (board[x]) {
       if (board[x].startsWith(`${color}k`)) {
         return x;
@@ -453,33 +472,33 @@ function isPlayerInCheckmate(color, enemyColor) {
 }
 
 function checkPromotion(index) {
-  let promoted = false 
+  let promoted = false
   const piece = board[index]
   if (!piece || (piece !== "wp" && piece !== "bp")) return false
 
   const row = Math.floor(index / 8);
 
-  
+
   if (!boardIsFlipped) {
 
     if (piece.startsWith("w") && row == 0) {
       promoted = true;
-      
+
     }
   } else if (piece.startsWith("b") && row == 0) {
-        promoted = true;
-    }
+    promoted = true;
+  }
 
-    return promoted
-  
+  return promoted
+
 }
 
 function promotePawn(index, newPiece) {
-    board[index] = newPiece; // Replace pawn with new piece
-    promoteSound.play();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBoard();
-    drawPieces();
+  board[index] = newPiece; // Replace pawn with new piece
+  promoteSound.play();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBoard();
+  drawPieces();
 }
 
 function previewPossibleMoves(index) {
@@ -552,3 +571,8 @@ canvas.addEventListener("mouseup", (event) => {
 
 drawBoard();
 drawPieces();
+
+ws.onopen = () => {
+  sendMove(1000, 1000, "b", "p", "0", "1", "0", "2")
+  console.log("Connected")
+}
