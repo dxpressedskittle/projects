@@ -102,23 +102,22 @@ const gameEndSound = new Audio("UI sounds/game-end.wav");
 const gameStartSound = new Audio("UI sounds/game-start.wav");
 const chessPieceDown = new Audio("UI sounds/chessPieceDown.wav");
 
-const ws = new WebSocket("ws://localhost:8080")
+const ws = new WebSocket("ws://localhost:8080/game")
 
 function sendMove(roomCode, clientKey, color, piece, startRow, startCol, targetRow, targetCol) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-
+  if (ws) {
     const moveData = `${color}${piece}${startRow}${startCol}${targetRow}${targetCol}`;
-
+    console.log(moveData)
     const movePayload = {
-      room: roomCode,
-      client: clientKey,
+      room: "12345",
+      client: "12344",
       message: "move",
-      data: moveData
+      data: "wpa1a2"
     };
-
+    console.log(movePayload)
     ws.send(JSON.stringify(movePayload));
   } else {
-    console.warn("Websocket not connected yet")
+    console.warn("Websocket not connected")
   }
 }
 
@@ -220,7 +219,6 @@ function dragPiece(startIndex, targetIndex) {
     }
   }
   let pawnPromoted = checkPromotion(targetIndex)
-  console.log(pawnPromoted)
   if (pawnPromoted) {
     promotePawn(targetIndex, "wq")
     pawnPromoted = false
