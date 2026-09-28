@@ -102,6 +102,8 @@ const gameEndSound = new Audio("UI sounds/game-end.wav");
 const gameStartSound = new Audio("UI sounds/game-start.wav");
 const chessPieceDown = new Audio("UI sounds/chessPieceDown.wav");
 
+const ws = new WebSocket("ws://localhost:3000/game")
+
 function drawBoard() {
   for (let i = 0; i < 8; i++) {
     // row
