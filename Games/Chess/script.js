@@ -103,18 +103,89 @@ const gameStartSound = new Audio("UI sounds/game-start.wav");
 const chessPieceDown = new Audio("UI sounds/chessPieceDown.wav");
 
 const ws = new WebSocket("ws://localhost:8080/game")
+const connectionParams = new URLSearchParams(window.location.search)
+let roomCode = Number(connectionParams.get("room"))
+let clientKey = Number(connectionParams.get("client"))
+
+async function joinRoom(roomCode) {
+  const response = await fetch("http://localhost:8080/join", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(roomCode),
+  });
+
+  if (!response.ok) throw new Error("Could not join room");
+
+  const clientKey = await response.json();
+  return clientKey;
+}
+
+async function createRoom() {
+  const response = await fetch("http://localhost:8080/room", {
+    method: "POST",
+  });
+
+  if (!response.ok) throw new Error(`Could not create room (${response.status})`);
+
+  const room = await response.json();
+  roomCode = room.code;
+  clientKey = room.client1;
+  return { roomCode, clientKey };
+}
+
+window.createRoom = createRoom; // globalize function
+
+window.chessDebug = () => {
+  const snapshot = {
+    roomCode,
+    clientKey,
+    board: [...board],
+    playerTurn,
+    boardIsFlipped,
+    heldPieceIndex,
+    whitePremoves: [...whitePremoves],
+    blackPremoves: [...blackPremoves],
+    webSocketState: ["CONNECTING", "OPEN", "CLOSING", "CLOSED"][ws.readyState],
+    viewport: { width: viewPortWidth, height: viewPortHeight },
+  };
+
+  console.log("[Chess Client Debug]", snapshot);
+  console.table(snapshot.board.map((piece, index) => ({
+    row: Math.floor(index / 8),
+    col: index % 8,
+    piece,
+  })));
+  return snapshot;
+};
+
+window.chessDebugRooms = async () => {
+  const response = await fetch("http://localhost:8080/debug/rooms");
+  if (!response.ok) throw new Error(`Could not load server rooms (${response.status})`);
+
+  const rooms = await response.json();
+  console.log("[Chess Server Debug]", rooms);
+  for (const room of rooms) {
+    console.log(`Room ${room.code}, turn ${room.clientTurn}`);
+    console.table(room.board.map((piece, index) => ({
+      row: Math.floor(index / 8),
+      col: index % 8,
+      piece,
+    })));
+  }
+  return rooms;
+};
 
 function sendMove(roomCode, clientKey, color, piece, startRow, startCol, targetRow, targetCol) {
-  if (ws) {
-    const moveData = `${color}${piece}${startRow}${startCol}${targetRow}${targetCol}`;
-    console.log(moveData)
+  if (ws.readyState === WebSocket.OPEN) {
+    const moveData = `${color}${piece}${startRow}${startCol}${targetRow}${targetCol}`
     const movePayload = {
-      room: "12345",
-      client: "12344",
+      room: roomCode,
+      client: clientKey,
       message: "move",
-      data: "wpa1a2"
+      data: moveData
     };
-    console.log(movePayload)
+    console.log("[Move Attempt]", moveData)
+    console.log("[Client -> Server]", movePayload)
     ws.send(JSON.stringify(movePayload));
   } else {
     console.warn("Websocket not connected")
@@ -185,6 +256,19 @@ function drawPieces() {
 
 function dragPiece(startIndex, targetIndex) {
   const piece = board[startIndex];
+  const row = 0
+  const col = 0 // FIX
+  if (
+    (piece.startsWith("w") && playerTurn === "black") ||
+    (piece.startsWith("b") && playerTurn === "white")
+  ) {
+    console.log("Wrong color pal")
+    return;
+  }
+
+  if (roomCode) {
+    sendMove(roomCode, clientKey, piece[0], piece[1], )
+  }
 
   if (
     !piece ||
@@ -195,12 +279,8 @@ function dragPiece(startIndex, targetIndex) {
     return;
   }
 
-  if (
-    (piece.startsWith("w") && playerTurn === "black") ||
-    (piece.startsWith("b") && playerTurn === "white")
-  ) {
-    return;
-  }
+
+
 
   board[targetIndex] = piece;
   board[startIndex] = null;
@@ -220,7 +300,7 @@ function dragPiece(startIndex, targetIndex) {
   }
   let pawnPromoted = checkPromotion(targetIndex)
   if (pawnPromoted) {
-    promotePawn(targetIndex, "wq")
+    promotePawn(targetIndex, "wq") // FIX LATER
     pawnPromoted = false
   }
 
@@ -571,6 +651,20 @@ drawBoard();
 drawPieces();
 
 ws.onopen = () => {
-  sendMove(1000, 1000, "b", "p", "0", "1", "0", "2")
-  console.log("Connected")
+  console.log("[WebSocket] Connected")
 }
+
+ws.onmessage = (event) => {
+  console.log("[Server -> Client]", event.data)
+}
+
+ws.onerror = (event) => {
+  console.error("[WebSocket] Error", event)
+}
+
+ws.onclose = (event) => {
+  console.log("[WebSocket] Closed", event.code, event.reason)
+}
+
+//createRoom().then(({ roomCode, clientKey }) => {
+//});
