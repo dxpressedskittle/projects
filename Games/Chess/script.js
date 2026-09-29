@@ -192,6 +192,16 @@ function sendMove(roomCode, clientKey, color, piece, startRow, startCol, targetR
   }
 }
 
+function requestBoard(roomCode) {
+  const requestPayload = {
+    room: roomCode,
+    client: 99999,
+    message: "reqBoard",
+    data: "none"
+  }
+  ws.send(JSON.stringify(requestPayload))
+}
+
 
 function drawBoard() {
   for (let i = 0; i < 8; i++) {
@@ -256,19 +266,6 @@ function drawPieces() {
 
 function dragPiece(startIndex, targetIndex) {
   const piece = board[startIndex];
-  const row = 0
-  const col = 0 // FIX
-  if (
-    (piece.startsWith("w") && playerTurn === "black") ||
-    (piece.startsWith("b") && playerTurn === "white")
-  ) {
-    console.log("Wrong color pal")
-    return;
-  }
-
-  if (roomCode) {
-    sendMove(roomCode, clientKey, piece[0], piece[1], )
-  }
 
   if (
     !piece ||
@@ -279,11 +276,16 @@ function dragPiece(startIndex, targetIndex) {
     return;
   }
 
+  let start = getPosition(startIndex)
+  let target = getPosition(targetIndex)
 
 
+  if (roomCode) {
+    sendMove(roomCode, clientKey, piece[0], piece[1], start.row, start.col, target.row, target.col)
+  }
 
-  board[targetIndex] = piece;
-  board[startIndex] = null;
+requestBoard()
+
 
   if (isPlayerInCheck("b")) {
     if (isPlayerInCheckmate("b", "w")) {
@@ -666,5 +668,4 @@ ws.onclose = (event) => {
   console.log("[WebSocket] Closed", event.code, event.reason)
 }
 
-//createRoom().then(({ roomCode, clientKey }) => {
-//});
+await window.createRoom()
