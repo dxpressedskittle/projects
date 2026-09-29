@@ -133,7 +133,9 @@ async function createRoom() {
   return { roomCode, clientKey };
 }
 
+window.joinRoom = joinRoom
 window.createRoom = createRoom; // globalize function
+
 
 window.chessDebug = () => {
   const snapshot = {
@@ -187,6 +189,7 @@ function sendMove(roomCode, clientKey, color, piece, startRow, startCol, targetR
     console.log("[Move Attempt]", moveData)
     console.log("[Client -> Server]", movePayload)
     ws.send(JSON.stringify(movePayload));
+    requestBoard(clientKey)
   } else {
     console.warn("Websocket not connected")
   }
@@ -195,7 +198,7 @@ function sendMove(roomCode, clientKey, color, piece, startRow, startCol, targetR
 function requestBoard(roomCode) {
   const requestPayload = {
     room: roomCode,
-    client: 99999,
+    client: roomCode,
     message: "reqBoard",
     data: "none"
   }
@@ -283,8 +286,8 @@ function dragPiece(startIndex, targetIndex) {
   if (roomCode) {
     sendMove(roomCode, clientKey, piece[0], piece[1], start.row, start.col, target.row, target.col)
   }
-
-requestBoard()
+  console.log(roomCode)
+  requestBoard(roomCode)
 
 
   if (isPlayerInCheck("b")) {
@@ -307,7 +310,6 @@ requestBoard()
   }
 
 
-  swapTurn();
   // moveSound.play();
 
   ctx.clearRect(0, 0, canvas.width, canvas.height); // clears and redraws screen later put util for it to do it
@@ -340,19 +342,7 @@ function isLegalMove(piece, startIndex, targetIndex) {
   return moveFunction ? moveFunction(startIndex, targetIndex, piece) : false; // sends out move function to set piece
 }
 
-function swapTurn() {
-  if (playerTurn === "white") {
-    playerTurn = "black";
-  } else {
-    playerTurn = "white";
-  }
-  board = board.toReversed(); // switch board so other color is on bottom
-  if (boardIsFlipped) {
-    boardIsFlipped = false;
-  } else {
-    boardIsFlipped = true;
-  }
-}
+
 
 function getPosition(index) {
   // calculates row and col from index
@@ -656,8 +646,14 @@ ws.onopen = () => {
   console.log("[WebSocket] Connected")
 }
 
-ws.onmessage = (event) => {
-  console.log("[Server -> Client]", event.data)
+ws.onmessage = (event) => { // only grab message if its a new board
+  if (event.data.type === "board") {
+    board = event.data.board
+    console.log(board)
+  } else {
+    console.log(event)
+    console.log("[Server -> Client]", event.data)
+  }
 }
 
 ws.onerror = (event) => {
@@ -668,4 +664,3 @@ ws.onclose = (event) => {
   console.log("[WebSocket] Closed", event.code, event.reason)
 }
 
-await window.createRoom()
