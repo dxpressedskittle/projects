@@ -102,10 +102,10 @@ const gameEndSound = new Audio("UI sounds/game-end.wav");
 const gameStartSound = new Audio("UI sounds/game-start.wav");
 const chessPieceDown = new Audio("UI sounds/chessPieceDown.wav");
 
-const ws = new WebSocket("ws://localhost:8080/game")
-const connectionParams = new URLSearchParams(window.location.search)
-let roomCode = Number(connectionParams.get("room"))
-let clientKey = Number(connectionParams.get("client"))
+const ws = new WebSocket("ws://localhost:8080/game");
+const connectionParams = new URLSearchParams(window.location.search);
+let roomCode = Number(connectionParams.get("room"));
+let clientKey = Number(connectionParams.get("client"));
 
 async function joinRoom(roomCode) {
   const response = await fetch("http://localhost:8080/join", {
@@ -116,8 +116,11 @@ async function joinRoom(roomCode) {
 
   if (!response.ok) throw new Error("Could not join room");
 
-  const clientKey = await response.json();
-  return clientKey;
+  const data = await response.json();
+  board = data.board;
+  drawBoard();
+  drawPieces();
+  return data.key;
 }
 
 async function createRoom() {
@@ -125,7 +128,8 @@ async function createRoom() {
     method: "POST",
   });
 
-  if (!response.ok) throw new Error(`Could not create room (${response.status})`);
+  if (!response.ok)
+    throw new Error(`Could not create room (${response.status})`);
 
   const room = await response.json();
   roomCode = room.code;
@@ -133,9 +137,8 @@ async function createRoom() {
   return { roomCode, clientKey };
 }
 
-window.joinRoom = joinRoom
+window.joinRoom = joinRoom;
 window.createRoom = createRoom; // globalize function
-
 
 window.chessDebug = () => {
   const snapshot = {
@@ -152,61 +155,86 @@ window.chessDebug = () => {
   };
 
   console.log("[Chess Client Debug]", snapshot);
-  console.table(snapshot.board.map((piece, index) => ({
-    row: Math.floor(index / 8),
-    col: index % 8,
-    piece,
-  })));
+  console.table(
+    snapshot.board.map((piece, index) => ({
+      row: Math.floor(index / 8),
+      col: index % 8,
+      piece,
+    })),
+  );
   return snapshot;
 };
 
 window.chessDebugRooms = async () => {
   const response = await fetch("http://localhost:8080/debug/rooms");
-  if (!response.ok) throw new Error(`Could not load server rooms (${response.status})`);
+  if (!response.ok)
+    throw new Error(`Could not load server rooms (${response.status})`);
 
   const rooms = await response.json();
   console.log("[Chess Server Debug]", rooms);
   for (const room of rooms) {
     console.log(`Room ${room.code}, turn ${room.clientTurn}`);
-    console.table(room.board.map((piece, index) => ({
-      row: Math.floor(index / 8),
-      col: index % 8,
-      piece,
-    })));
+    console.table(
+      room.board.map((piece, index) => ({
+        row: Math.floor(index / 8),
+        col: index % 8,
+        piece,
+      })),
+    );
   }
   return rooms;
 };
 
-function sendMove(roomCode, clientKey, color, piece, startRow, startCol, targetRow, targetCol) {
+function sendMove(
+  roomCode,
+  clientKey,
+  color,
+  piece,
+  startRow,
+  startCol,
+  targetRow,
+  targetCol,
+) {
   if (ws.readyState === WebSocket.OPEN) {
-    const moveData = `${color}${piece}${startRow}${startCol}${targetRow}${targetCol}`
+    const moveData = `${color}${piece}${startRow}${startCol}${targetRow}${targetCol}`;
     const movePayload = {
       room: roomCode,
       client: clientKey,
       message: "move",
-      data: moveData
+      data: moveData,
     };
-    console.log("[Move Attempt]", moveData)
-    console.log("[Client -> Server]", movePayload)
+    console.log("[Move Attempt]", moveData);
+    console.log("[Client -> Server]", movePayload);
     ws.send(JSON.stringify(movePayload));
-    requestBoard(clientKey)
   } else {
-    console.warn("Websocket not connected")
+    console.warn("Websocket not connected");
   }
 }
 
 function requestBoard(roomCode) {
+  if (
+    !Number.isInteger(roomCode) ||
+    roomCode < 10000 ||
+    roomCode > 100000 || //  validate codes
+    !Number.isInteger(clientKey) ||
+    clientKey < 10000 ||
+    clientKey > 100000 ||
+    ws.readyState !== WebSocket.OPEN
+  ) {
+    return;
+  }
+
   const requestPayload = {
     room: roomCode,
-    client: roomCode,
+    client: clientKey,
     message: "reqBoard",
-    data: "none"
-  }
-  ws.send(JSON.stringify(requestPayload))
+    data: "none",
+  };
+  ws.send(JSON.stringify(requestPayload));
 }
 
-
 function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i < 8; i++) {
     // row
     ctx.fillStyle = "black";
@@ -279,17 +307,26 @@ function dragPiece(startIndex, targetIndex) {
     return;
   }
 
-  let start = getPosition(startIndex)
-  let target = getPosition(targetIndex)
-
+  let start = getPosition(startIndex);
+  let target = getPosition(targetIndex);
 
   if (roomCode) {
-    sendMove(roomCode, clientKey, piece[0], piece[1], start.row, start.col, target.row, target.col)
+    sendMove(
+      roomCode,
+      clientKey,
+      piece[0],
+      piece[1],
+      start.row,
+      start.col,
+      target.row,
+      target.col,
+    );
   }
-  console.log(roomCode)
-  requestBoard(roomCode)
 
+  console.log(roomCode);
+  requestBoard(roomCode);
 
+  /*
   if (isPlayerInCheck("b")) {
     if (isPlayerInCheckmate("b", "w")) {
       gameEndSound.play(); // Checkmate
@@ -308,11 +345,10 @@ function dragPiece(startIndex, targetIndex) {
     promotePawn(targetIndex, "wq") // FIX LATER
     pawnPromoted = false
   }
-
+*/
 
   // moveSound.play();
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // clears and redraws screen later put util for it to do it
   drawBoard();
   drawPieces();
 }
@@ -341,8 +377,6 @@ function isLegalMove(piece, startIndex, targetIndex) {
   const moveFunction = moveFunctions[piece[1]];
   return moveFunction ? moveFunction(startIndex, targetIndex, piece) : false; // sends out move function to set piece
 }
-
-
 
 function getPosition(index) {
   // calculates row and col from index
@@ -542,25 +576,21 @@ function isPlayerInCheckmate(color, enemyColor) {
 }
 
 function checkPromotion(index) {
-  let promoted = false
-  const piece = board[index]
-  if (!piece || (piece !== "wp" && piece !== "bp")) return false
+  let promoted = false;
+  const piece = board[index];
+  if (!piece || (piece !== "wp" && piece !== "bp")) return false;
 
   const row = Math.floor(index / 8);
 
-
   if (!boardIsFlipped) {
-
     if (piece.startsWith("w") && row == 0) {
       promoted = true;
-
     }
   } else if (piece.startsWith("b") && row == 0) {
     promoted = true;
   }
 
-  return promoted
-
+  return promoted;
 }
 
 function promotePawn(index, newPiece) {
@@ -643,24 +673,26 @@ drawBoard();
 drawPieces();
 
 ws.onopen = () => {
-  console.log("[WebSocket] Connected")
-}
+  console.log("[WebSocket] Connected");
+};
 
-ws.onmessage = (event) => { // only grab message if its a new board
-  if (event.data.type === "board") {
-    board = event.data.board
-    console.log(board)
+ws.onmessage = (event) => {
+  let response = JSON.parse(event.data);
+
+  if (response.type === "board" && Array.isArray(response.data)) {
+    board = response.data;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBoard();
+    drawPieces();
   } else {
-    console.log(event)
-    console.log("[Server -> Client]", event.data)
+    console.log("[Server -> Client]", response);
   }
-}
+};
 
 ws.onerror = (event) => {
-  console.error("[WebSocket] Error", event)
-}
+  console.error("[WebSocket] Error", event);
+};
 
 ws.onclose = (event) => {
-  console.log("[WebSocket] Closed", event.code, event.reason)
-}
-
+  console.log("[WebSocket] Closed", event.code, event.reason);
+};
