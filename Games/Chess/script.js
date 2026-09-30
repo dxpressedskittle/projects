@@ -406,7 +406,7 @@ function dragPiece(startIndex, targetIndex) {
   drawPieces();
 }
 
-function getBoardIndex(x, y) {
+function getIndex(x, y) {
   const col = Math.floor((x - boardXOffset) / blockSize);
   const row = Math.floor((y - boardYOffset) / blockSize);
 
@@ -415,6 +415,13 @@ function getBoardIndex(x, y) {
   } else {
     return row * 8 + col;
   }
+}
+
+function getPosition(index) {
+  return {
+    row: Math.floor(index / 8),
+    col: index % 8,
+  };
 }
 
 function isLegalMove(piece, startIndex, targetIndex) {
@@ -431,12 +438,6 @@ function isLegalMove(piece, startIndex, targetIndex) {
   return moveFunction ? moveFunction(startIndex, targetIndex, piece) : false; // sends out move function to set piece
 }
 
-function getPosition(index) {
-  return {
-    row: Math.floor(index / 8),
-    col: index % 8,
-  };
-}
 
 function isTargetAvailable(piece, targetIndex) {
   const targetPiece = board[targetIndex];
@@ -554,78 +555,6 @@ function isKingLegalMove(startIndex, targetIndex, piece) {
   return rowDiff <= 1 && colDiff <= 1 && isTargetAvailable(piece, targetIndex);
 }
 
-function findKing(color) {
-  for (let x = 0; x < 64; x++) {
-    if (board[x]) {
-      if (board[x].startsWith(`${color}k`)) {
-        return x;
-      }
-    }
-  }
-}
-
-function isPlayerInCheck(color) {
-  const kingIndex = findKing(color);
-  const enemyColor = color === "white" ? "b" : "w";
-
-  for (let i = 0; i < 64; i++) {
-    const piece = board[i];
-
-    // Only check pieces that belong to the opponent
-    if (piece && piece.startsWith(enemyColor)) {
-      // Check if this enemy piece can attack the kings square
-      if (isLegalMove(piece, i, kingIndex)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function isPlayerInCheckmate(color, enemyColor) {
-  for (let i = 0; i < 64; i++) {
-    piece = board[i];
-
-    if (!piece || piece.startsWith(enemyColor)) {
-      // dont check moves if enemy or empty
-      continue;
-    }
-
-    for (let j = 0; j < 64; j++) {
-      if (i === j) {
-        continue;
-      }
-
-      if (isLegalMove(piece, i, j)) {
-        let tempPiece = board[j];
-        board[j] = board[i];
-        board[i] = null;
-
-        let stillInCheck = isPlayerInCheck(color);
-
-        board[i] = board[j];
-        board[j] = tempPiece;
-
-        if (!stillInCheck) {
-          return false;
-        }
-      }
-    }
-  }
-  pos = getPosition(findKing(color));
-  row = pos.row;
-  col = pos.col;
-
-  ctx.fillStyle = "light red";
-  ctx.fillRect(
-    row * blockSize + boardXOffset,
-    col * blockSize + boardYOffset,
-    blockSize,
-    blockSize,
-  );
-
-  return true;
-}
 
 function checkPromotion(index) {
   let promoted = false;
@@ -677,6 +606,12 @@ function previewPossibleMoves(index) {
   });
 }
 
+function drawCheck(index) {
+  ctx.fillStyle = "rgba(255, 0, 0, 0.4)";
+  const checkPos = getPosition(index)
+  ctx.fillRect(checkPos.col * blockSize + boardXOffset, checkPos.row * blockSize + boardYOffset, blockSize, blockSize)
+}
+
 function clearHighlights() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBoard();
@@ -688,7 +623,7 @@ canvas.addEventListener("mousedown", (event) => {
   const clickX = event.clientX - rect.left;
   const clickY = event.clientY - rect.top;
 
-  heldPieceIndex = getBoardIndex(clickX, clickY);
+  heldPieceIndex = getIndex(clickX, clickY);
 
   if (heldPieceIndex === null || heldPieceIndex === "Out of bounds") {
     heldPieceIndex = null;
@@ -702,7 +637,7 @@ canvas.addEventListener("mouseup", (event) => {
   const releaseX = event.clientX - rect.left;
   const releaseY = event.clientY - rect.top;
 
-  const targetIndex = getBoardIndex(releaseX, releaseY);
+  const targetIndex = getIndex(releaseX, releaseY);
 
   if (heldPieceIndex !== null && targetIndex !== "Out of bounds") {
     dragPiece(heldPieceIndex, targetIndex);
@@ -727,6 +662,8 @@ ws.onopen = () => {
 };
 
 ws.onmessage = (event) => {
+  console.log(event)
+
   let response = JSON.parse(event.data);
 
   if (response.type === "board" && Array.isArray(response.data)) {
@@ -740,6 +677,14 @@ ws.onmessage = (event) => {
     drawBoard();
     drawPieces();
     matchStatus.textContent = `Connected to room ${roomCode} as ${playerColor === "b" ? "Black" : "White"}`;
+  } else if (response.check === true) {
+    let kingInCheck
+    for (let x = 0; x < 64; x++) {
+      if (board[x] && board[x]?.startsWith(`${response.color}k`)) {
+        kingInCheck = board[x]
+      }
+    }
+    drawCheck(kingInCheck)
   } else {
     console.log("[Server -> Client]", response);
   }
@@ -752,3 +697,4 @@ ws.onerror = (event) => {
 ws.onclose = (event) => {
   console.log("[WebSocket] Closed", event.code, event.reason);
 };
+
