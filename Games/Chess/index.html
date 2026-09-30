@@ -4,21 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chess</title>
-
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden; 
-      }
-
-      canvas {
-        display: block; 
-      }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="canvas" ></canvas>
+    <header class="match-controls">
+      <button id="start-match" type="button">Start match</button>
+      <form id="join-match">
+        <label for="room-code" hidden>Room code</label>
+        <input id="room-code" name="room" type="text" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="Room code" required>
+        <button type="submit">Join</button>
+      </form>
+      <output id="match-status" role="status" aria-live="polite">Connect to start or join a match</output>
+    </header>
+    <canvas id="canvas"></canvas>
 
     <script src="script.js"></script>
 

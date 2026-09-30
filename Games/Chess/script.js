@@ -1,12 +1,11 @@
 // Viewport variables
-const viewPortWidth = window.innerWidth;
-const viewPortHeight = window.innerHeight;
-const vw = viewPortWidth / 100;
-const vh = viewPortHeight / 100;
-
 // Canvas setup
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const viewPortWidth = canvas.clientWidth;
+const viewPortHeight = canvas.clientHeight;
+const vw = viewPortWidth / 100;
+const vh = viewPortHeight / 100;
 canvas.width = viewPortWidth;
 canvas.height = viewPortHeight;
 
@@ -86,6 +85,7 @@ let boardIsFlipped = false;
 
 let heldPieceIndex = null;
 let playerTurn = "white";
+let playerColor = "w";
 
 const whitePremoves = [];
 const blackPremoves = [];
@@ -107,20 +107,26 @@ const connectionParams = new URLSearchParams(window.location.search);
 let roomCode = Number(connectionParams.get("room"));
 let clientKey = Number(connectionParams.get("client"));
 
-async function joinRoom(roomCode) {
+async function joinRoom(requestedRoomCode) {
   const response = await fetch("http://localhost:8080/join", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(roomCode),
+    body: JSON.stringify(requestedRoomCode),
   });
 
   if (!response.ok) throw new Error("Could not join room");
 
   const data = await response.json();
+  roomCode = requestedRoomCode;
+  clientKey = data.key;
+  playerColor = data.playerColor;
+  playerTurn = playerColor === "b" ? "black" : "white";
+  boardIsFlipped = playerColor === "b";
   board = data.board;
   drawBoard();
   drawPieces();
-  return data.key;
+  requestBoard(roomCode);
+  return clientKey;
 }
 
 async function createRoom() {
@@ -134,11 +140,59 @@ async function createRoom() {
   const room = await response.json();
   roomCode = room.code;
   clientKey = room.client1;
+  playerColor = "w";
+  playerTurn = "white";
+  boardIsFlipped = false;
+  requestBoard(roomCode);
   return { roomCode, clientKey };
 }
 
 window.joinRoom = joinRoom;
 window.createRoom = createRoom; // globalize function
+
+const startMatchButton = document.getElementById("start-match");
+const joinMatchForm = document.getElementById("join-match");
+const roomCodeInput = document.getElementById("room-code");
+const matchStatus = document.getElementById("match-status");
+
+if (roomCode >= 10000 && roomCode <= 99999) {
+  roomCodeInput.value = String(roomCode);
+}
+
+startMatchButton.addEventListener("click", async () => {
+  startMatchButton.disabled = true;
+  matchStatus.textContent = "Creating match...";
+  try {
+    const room = await createRoom();
+    roomCodeInput.value = String(room.roomCode);
+    matchStatus.textContent = `Share room code ${room.roomCode} to invite Black`;
+  } catch (error) {
+    matchStatus.textContent = error.message;
+  } finally {
+    startMatchButton.disabled = false;
+  }
+});
+
+joinMatchForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const requestedRoomCode = Number(roomCodeInput.value);
+  if (!Number.isInteger(requestedRoomCode) || requestedRoomCode < 10000 || requestedRoomCode > 99999) {
+    matchStatus.textContent = "Enter a valid five-digit room code";
+    return;
+  }
+
+  const joinButton = joinMatchForm.querySelector("button[type=submit]");
+  joinButton.disabled = true;
+  matchStatus.textContent = "Joining match...";
+  try {
+    await joinRoom(requestedRoomCode);
+    matchStatus.textContent = `Joined room ${requestedRoomCode} as Black`;
+  } catch (error) {
+    matchStatus.textContent = error.message;
+  } finally {
+    joinButton.disabled = false;
+  }
+});
 
 window.chessDebug = () => {
   const snapshot = {
@@ -323,7 +377,6 @@ function dragPiece(startIndex, targetIndex) {
     );
   }
 
-  console.log(roomCode);
   requestBoard(roomCode);
 
   /*
@@ -379,7 +432,6 @@ function isLegalMove(piece, startIndex, targetIndex) {
 }
 
 function getPosition(index) {
-  // calculates row and col from index
   return {
     row: Math.floor(index / 8),
     col: index % 8,
@@ -603,18 +655,12 @@ function promotePawn(index, newPiece) {
 
 function previewPossibleMoves(index) {
   const piece = board[index];
-  if (!piece) return;
+  if (!piece || piece[0] !== playerColor) return;
 
   const possibleMoves = [];
 
   for (let targetIndex = 0; targetIndex < 64; targetIndex++) {
     if (isLegalMove(piece, index, targetIndex)) {
-      if (
-        (piece.startsWith("w") && playerTurn === "black") ||
-        (piece.startsWith("b") && playerTurn === "white")
-      ) {
-        return;
-      }
       possibleMoves.push(targetIndex);
     }
   }
@@ -674,16 +720,26 @@ drawPieces();
 
 ws.onopen = () => {
   console.log("[WebSocket] Connected");
+  matchStatus.textContent = roomCode && clientKey
+    ? "Reconnecting to match..."
+    : "Connected. Start or join a match.";
+  requestBoard(roomCode);
 };
 
 ws.onmessage = (event) => {
   let response = JSON.parse(event.data);
 
   if (response.type === "board" && Array.isArray(response.data)) {
+    if (response.playerColor) {
+      playerColor = response.playerColor;
+      playerTurn = playerColor === "b" ? "black" : "white";
+      boardIsFlipped = playerColor === "b";
+    }
     board = response.data;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBoard();
     drawPieces();
+    matchStatus.textContent = `Connected to room ${roomCode} as ${playerColor === "b" ? "Black" : "White"}`;
   } else {
     console.log("[Server -> Client]", response);
   }

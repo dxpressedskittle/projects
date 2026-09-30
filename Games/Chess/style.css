@@ -1,0 +1,89 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  background: #f4f2ec;
+  color: #202923;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.match-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #d8d8d0;
+  background: #fff;
+}
+
+button,
+input {
+  min-height: 40px;
+  border: 1px solid #c9cec8;
+  border-radius: 4px;
+  font: inherit;
+}
+
+button {
+  padding: 0 14px;
+  background: #294f3b;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+form {
+  display: flex;
+  gap: 6px;
+}
+
+input {
+  width: 130px;
+  padding: 0 10px;
+  background: #fff;
+  color: inherit;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid #b66d3c;
+  outline-offset: 2px;
+}
+
+#match-status {
+  margin-left: auto;
+  color: #59635c;
+  font-size: 14px;
+}
+
+#canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+@media (max-width: 560px) {
+  .match-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  #match-status {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
